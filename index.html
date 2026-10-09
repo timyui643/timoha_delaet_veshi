@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a24">
+<meta name="description" content="Training Battle 2.0 — учи немецкие слова в бою.">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>Training Battle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#3b9bff; --blue2:#6fd0ff; --pink:#ff3d9a; --pink2:#ff8ad0;
+  --purple:#9a5cff; --green:#3dff7a; --red:#ff3355; --gold:#ffd23d;
+  --ink:#eef0ff; --panel:#0a0d2c; --panel2:#080a26;
+  --marker:'Permanent Marker','Marker Felt','Bradley Hand',cursive;
+  --hand:'Patrick Hand','Segoe Print','Comic Sans MS',sans-serif;
+  --chm:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px);
+  --chm2:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  color-scheme:dark;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);background:#070a24}
+body{margin:0;height:100%;background:#070a24;color:var(--ink);font-family:var(--hand);font-size:18px;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:inherit}
+#app{position:relative;width:100%;height:100%;overflow:hidden}
+#bg{position:absolute;inset:0;width:100%;height:100%}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.active{display:flex}
+
+/* ---------- fighters ---------- */
+.fw{position:absolute;bottom:0;height:100%;max-height:440px;aspect-ratio:260/360;will-change:transform}
+.fw.l{left:13%}.fw.r{right:13%}
+.fw svg{width:100%;height:100%;overflow:visible;animation:bob 2.3s ease-in-out infinite}
+.fw.l svg{filter:drop-shadow(0 0 9px rgba(59,155,255,.9))}
+.fw.r svg{filter:drop-shadow(0 0 9px rgba(255,61,154,.9));transform:scaleX(-1);animation-name:bobr;animation-delay:-1.1s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes bobr{0%,100%{transform:scaleX(-1) translateY(0)}50%{transform:scaleX(-1) translateY(-7px)}}
+
+/* ---------- menu ---------- */
+#menu{overflow-y:auto;background:radial-gradient(ellipse at 50% 40%,rgba(5,6,30,.35),rgba(4,5,22,.82))}
+.menuin{margin:auto;width:100%;max-width:720px;padding:18px 16px 28px;position:relative;z-index:2;text-align:center}
+.mf{position:absolute;bottom:0;height:62%;max-height:520px;z-index:1;pointer-events:none}
+.mf.l{left:2%}.mf.r{right:2%}
+.title{margin:6px 0 0;font-family:var(--marker);font-weight:400;line-height:.9;font-size:clamp(46px,11vw,104px);transform:rotate(-3deg);
+  background:linear-gradient(180deg,#fff 10%,#8fb8ff 90%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 16px #4f8dff) drop-shadow(4px 4px 0 #1b2a8a)}
+.title span{display:block}
+.title span+span{margin-top:-4px;filter:hue-rotate(-60deg)}
+.tagline{margin:14px 0 12px;font-size:clamp(17px,2.4vw,22px);opacity:.9;text-shadow:0 0 8px #000}
+.lvl{display:inline-flex;align-items:center;gap:10px;padding:6px 14px;background:rgba(6,8,34,.8);border:2px solid var(--blue);clip-path:var(--chm2);margin-bottom:12px}
+.lvl b{font-family:var(--marker);font-weight:400;font-size:22px;color:var(--blue2)}
+.lvl .xpbar{width:110px;height:10px;background:rgba(255,255,255,.1);transform:skewX(-20deg);overflow:hidden}
+.lvl .xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--purple))}
+.panelw{filter:drop-shadow(0 0 10px rgba(80,120,255,.45));text-align:left}
+.panel{background:var(--blue);clip-path:var(--chm);padding:3px}
+.panel>.pin{background:linear-gradient(#0d1038,#080a26);clip-path:var(--chm2);padding:16px 18px 18px;display:grid;gap:14px}
+.row{display:grid;gap:6px}
+.row>label,.row>.lab{font-size:17px;opacity:.75}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.names input{width:100%;font:inherit;font-size:22px;padding:6px 10px;color:#fff;background:rgba(255,255,255,.05);border:2px solid var(--blue);outline:none;border-radius:4px}
+.names input:last-child{border-color:var(--pink)}
+.names input:focus-visible{box-shadow:0 0 0 3px rgba(255,255,255,.5)}
+.names input:disabled{opacity:.7}
+.seg2{display:flex;gap:8px;flex-wrap:wrap}
+.opt{flex:1;min-width:120px;padding:8px 12px;font-size:19px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.25);border-radius:4px;cursor:pointer;transition:.12s}
+.opt:hover{border-color:#fff}
+.opt:focus-visible,.chip:focus-visible,.big:focus-visible,.card:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.opt.on{border-color:var(--blue2);background:rgba(59,155,255,.22);box-shadow:0 0 12px rgba(59,155,255,.6)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:4px 12px;font-size:18px;background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.3);border-radius:20px;cursor:pointer}
+.chip.on{border:2px solid var(--green);background:rgba(61,255,122,.14);color:#d5ffe2}
+.toggles{display:flex;gap:18px;flex-wrap:wrap}
+.toggles label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:19px}
+.toggles input{width:20px;height:20px;accent-color:var(--blue)}
+.big{display:block;margin:18px auto 0;font-family:var(--marker);font-size:clamp(26px,4.4vw,38px);padding:12px 38px;color:#fff;cursor:pointer;border:0;
+  background:linear-gradient(100deg,#1c5cff,#8a3dff 55%,#ff3d9a);clip-path:var(--chm);text-shadow:2px 2px 0 rgba(0,0,0,.6);transition:transform .12s,filter .12s;filter:drop-shadow(0 0 14px #8a6bff)}
+.big:hover{transform:scale(1.05) rotate(-1deg)}
+.big.alt{background:linear-gradient(100deg,#243079,#3a4bb3);font-size:24px;padding:10px 26px;filter:none}
+.how{margin-top:16px;text-align:left;background:rgba(6,8,34,.75);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:8px 14px;font-size:17px}
+.how summary{cursor:pointer;font-size:19px}
+.how p{margin:8px 0;line-height:1.35}
+
+/* ---------- battle ---------- */
+#battle{padding:10px clamp(10px,2vw,24px) 10px}
+.hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px;position:relative;z-index:3}
+.pbox{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.pbox.left{--pc:var(--blue);--pc2:var(--blue2);--pcg:rgba(59,155,255,.55)}
+.pbox.right{--pc:var(--pink);--pc2:var(--pink2);--pcg:rgba(255,61,154,.55);flex-direction:row-reverse;text-align:right}
+.avwrap{filter:drop-shadow(0 0 8px var(--pcg));flex:none;transition:filter .2s}
+.pbox.active .avwrap{filter:drop-shadow(0 0 16px var(--pc)) drop-shadow(0 0 6px var(--pc))}
+.avatar{width:clamp(50px,7vw,86px);aspect-ratio:1;background:var(--pc);padding:3px;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.avatar>div{width:100%;height:100%;background:#0a0d2c;display:grid;place-items:end center;overflow:hidden;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.avatar svg{width:82%;height:82%}
+.pinfo{flex:1;min-width:0}
+.pname{font-family:var(--marker);font-size:clamp(24px,3.6vw,44px);line-height:1;color:#fff;text-shadow:0 0 14px var(--pc),2px 2px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbox.active .pname::before{content:"▶ ";color:var(--pc);font-size:.6em}
+.pbox.right.active .pname::before{content:""}
+.pbox.right.active .pname::after{content:" ◀";color:var(--pc);font-size:.6em}
+.hptxt{font-size:clamp(17px,2.4vw,26px);line-height:1;margin:2px 4px 3px;font-weight:700;text-shadow:0 0 8px var(--pc)}
+.bar{display:flex;gap:3px;padding:4px 5px;background:rgba(5,6,25,.82);border:2px solid var(--pc);transform:skewX(-14deg);box-shadow:0 0 14px var(--pcg);margin-left:6px;margin-right:6px}
+.pbox.left .bar{flex-direction:row-reverse}
+.pbox.right .bar{transform:skewX(14deg)}
+.seg{flex:1;height:clamp(12px,2.1vw,22px);background:rgba(255,255,255,.07);position:relative;overflow:hidden}
+.seg i{position:absolute;top:0;bottom:0;left:0;width:100%;background:linear-gradient(var(--pc2),var(--pc));transition:width .6s ease}
+.pbox.left .seg i{left:auto;right:0}
+.meta{display:flex;gap:10px;margin-top:5px;align-items:center;font-size:clamp(14px,1.8vw,19px);flex-wrap:wrap}
+.pbox.right .meta{justify-content:flex-end}
+.combo{color:var(--gold);text-shadow:0 0 8px #ff8a00;visibility:hidden}
+.combo.on{visibility:visible;animation:pulse .9s infinite}
+.pips{color:var(--pc2)}
+.vs{font-family:var(--marker);font-size:clamp(48px,9.5vw,124px);line-height:.85;transform:rotate(-6deg);margin-top:-4px;
+  background:linear-gradient(180deg,#fff,#8fb8ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 14px #5aa0ff) drop-shadow(3px 3px 0 #1b2a8a);letter-spacing:-4px;padding-right:6px}
+.arena{position:relative;flex:1;min-height:0;z-index:2}
+.status{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-family:var(--marker);font-size:clamp(14px,2.1vw,22px);padding:5px 18px;background:rgba(5,6,25,.7);border:2px solid var(--sc,#fff);color:#fff;white-space:nowrap;clip-path:var(--chm2);max-width:96%;overflow:hidden;text-overflow:ellipsis;z-index:4;text-shadow:0 0 8px var(--sc,#fff)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(8px,1.6vw,22px);padding:0 1%;margin-top:6px;position:relative;z-index:3;--pc:var(--blue)}
+.cw{background:none;border:0;padding:0;cursor:pointer;filter:drop-shadow(0 0 7px var(--pc));transition:transform .15s,filter .15s;text-align:left;font:inherit;color:inherit;display:block;width:100%}
+.cw:not(.off):hover,.cw.sel{transform:translateY(-7px);filter:drop-shadow(0 0 14px var(--pc)) drop-shadow(0 0 4px #fff)}
+.cw.off{cursor:default}
+.cw.cdw{filter:grayscale(.85) brightness(.55);cursor:not-allowed}
+.card{position:relative;background:var(--pc);clip-path:var(--chm);padding:3px;display:block}
+.ci{position:relative;background:linear-gradient(#0d1038,#080a26);clip-path:var(--chm2);padding:7px 12px 10px;display:block}
+.ch{display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:3px}
+.ico{width:clamp(22px,3vw,36px);height:clamp(22px,3vw,36px);flex:none;display:block}
+.ch b{flex:1;text-align:center;font-size:clamp(18px,2.4vw,30px);font-weight:400;padding-right:clamp(22px,3vw,36px)}
+.topic{text-align:center;font-size:clamp(16px,2vw,25px);margin:3px 0 7px}
+.topic .d{font-size:.8em;color:var(--gold);margin-left:6px;text-shadow:0 0 6px #ff8a00}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:6px 24%}
+.slots i{display:block;height:clamp(9px,1.6vw,18px);border:2px solid var(--rc);background:repeating-linear-gradient(135deg,transparent 0 3px,rgba(var(--rgb),.5) 3px 4px)}
+.cdn{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--marker);font-size:clamp(28px,4vw,48px);color:#fff;text-shadow:0 0 10px #000}
+.mega{position:relative;display:flex;align-items:stretch;height:clamp(40px,6vw,62px);margin-top:clamp(20px,3vw,26px);z-index:3;--pc:var(--blue);--pc2:var(--blue2);--pcg:rgba(59,155,255,.55)}
+.mega.p1{--pc:var(--pink);--pc2:var(--pink2);--pcg:rgba(255,61,154,.55)}
+.bolt{width:clamp(56px,8vw,84px);background:var(--pc);clip-path:polygon(0 50%,22% 0,100% 0,100% 100%,22% 100%);padding:3px 0 3px 3px;flex:none;filter:drop-shadow(0 0 8px var(--pc))}
+.bolt>div{width:100%;height:100%;background:#0a0d2c;clip-path:polygon(0 50%,22% 0,100% 0,100% 100%,22% 100%);display:grid;place-items:center;padding-left:14%}
+.bolt svg{width:56%;height:78%}
+.mtrack{flex:1;display:flex;gap:5px;padding:7px 18px 7px 8px;background:rgba(6,8,34,.88);border-top:2px solid var(--pc);border-bottom:2px solid var(--pc);position:relative;min-width:0}
+.mc{flex:1;background:rgba(255,255,255,.07);transform:skewX(-22deg);transition:.25s}
+.mc.on{background:linear-gradient(90deg,var(--pc),var(--purple));box-shadow:0 0 12px var(--pc)}
+.mlabel{position:absolute;left:34%;top:-26px;font-size:clamp(18px,2.6vw,27px);text-shadow:0 0 10px var(--pc),2px 2px 0 #000;white-space:nowrap;font-family:var(--marker)}
+.mlabel.ready{color:var(--gold);animation:pulse .7s infinite}
+.orb{width:clamp(48px,7vw,78px);margin-left:-6px;margin-top:clamp(-14px,-1.6vw,-8px);margin-bottom:clamp(-14px,-1.6vw,-8px);border:0;background:none;padding:0;cursor:default;flex:none;position:relative;z-index:2;opacity:.75}
+.orb svg{width:100%;height:100%;display:block}
+.orb.ready{opacity:1;cursor:pointer;animation:orbp .7s infinite;filter:drop-shadow(0 0 16px #c08cff) drop-shadow(0 0 6px #fff)}
+@keyframes orbp{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ---------- question overlay ---------- */
+.qov{position:absolute;inset:0;display:none;overflow-y:auto;align-items:flex-start;justify-content:center;background:rgba(3,4,20,.66);backdrop-filter:blur(2px);z-index:20;padding:12px}
+.qov.on{display:flex}
+.qwrap{filter:drop-shadow(0 0 18px var(--rc));width:min(700px,100%);margin:auto;animation:qin .28s cubic-bezier(.2,1.4,.4,1)}
+@keyframes qin{from{transform:scale(.7) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
+.qbox{background:var(--rc);clip-path:var(--chm);padding:3px}
+.qin{background:linear-gradient(#0e1140,#080a28);clip-path:var(--chm2);padding:12px clamp(12px,3vw,26px) 18px;position:relative}
+.qtop{display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:6px}
+.qtop .ico{width:38px;height:38px}
+.qtop b{font-family:var(--marker);font-weight:400;font-size:clamp(22px,3.4vw,32px)}
+.qtop .qt{flex:1;opacity:.9;font-size:clamp(18px,2.4vw,24px)}
+.qdmg{font-family:var(--marker);color:var(--gold);font-size:clamp(20px,3vw,28px);text-shadow:0 0 8px #ff8a00}
+.qwho{margin:8px 0 4px;font-size:clamp(17px,2.2vw,21px);opacity:.9}
+.rev{display:none;margin-left:8px;padding:0 10px;background:var(--red);color:#fff;font-family:var(--marker);transform:rotate(-3deg);box-shadow:0 0 12px var(--red)}
+.rev.on{display:inline-block}
+.tbar{height:9px;background:rgba(255,255,255,.1);margin:6px 0 10px;transform:skewX(-20deg);overflow:hidden}
+.tbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--rc),#fff)}
+.tbar.hide{visibility:hidden}
+.qlabel{text-align:center;font-size:clamp(16px,2.2vw,20px);opacity:.7}
+.qprompt{text-align:center;font-family:var(--marker);font-size:clamp(30px,6.4vw,60px);line-height:1.1;margin:4px 0 14px;text-shadow:0 0 14px var(--rc),2px 2px 0 #000;word-break:break-word}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.a{position:relative;padding:12px 10px 12px 44px;font-size:clamp(19px,2.8vw,26px);text-align:left;cursor:pointer;color:#fff;
+  border:2px solid var(--rc);background:repeating-linear-gradient(135deg,rgba(var(--rgb),.07) 0 3px,rgba(var(--rgb),.22) 3px 4px);transition:.12s;min-height:52px}
+.a:hover:not(:disabled){background:rgba(var(--rgb),.3);transform:translateY(-2px)}
+.a:focus-visible{outline:3px solid #fff}
+.a .k{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:26px;height:26px;border:2px solid var(--rc);border-radius:50%;display:grid;place-items:center;font-size:16px}
+.a.good{background:rgba(61,255,122,.35);border-color:var(--green);box-shadow:0 0 18px var(--green)}
+.a.bad{background:rgba(255,51,85,.35);border-color:var(--red);box-shadow:0 0 18px var(--red);animation:shk .35s}
+.a:disabled{cursor:default}
+.a:disabled:not(.good):not(.bad){opacity:.45}
+.qres{height:34px;text-align:center;font-family:var(--marker);font-size:clamp(20px,3.2vw,30px);margin-top:10px}
+.qprompt.lg{font-size:clamp(24px,4.2vw,40px)}.qprompt.xl{font-size:clamp(19px,3.2vw,30px)}
+.ans.wide{grid-template-columns:1fr}.ans.wide .a{font-size:clamp(17px,2.4vw,22px)}
+.qexp{white-space:pre-line;text-align:center;font-size:clamp(17px,2.3vw,21px);color:#cfd6ff;margin-top:4px;line-height:1.3}
+.qskip{text-align:center;font-size:14px;opacity:.45;margin-top:8px;visibility:hidden}
+.glab{flex-basis:100%;font-size:15px;opacity:.6;margin-top:4px}
+.qres.ok{color:var(--green);text-shadow:0 0 12px var(--green)}
+.qres.no{color:var(--red);text-shadow:0 0 12px var(--red)}
+@keyframes shk{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ---------- fx ---------- */
+.fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:15}
+.burst{position:absolute;left:50%;top:38%;font-family:var(--marker);font-size:clamp(54px,14vw,170px);line-height:1;white-space:nowrap;color:#fff;
+  text-shadow:0 0 22px var(--bc,#5aa0ff),6px 6px 0 #000;transform:translate(-50%,-50%) rotate(-6deg);animation:pop 1s ease-out forwards;-webkit-text-stroke:2px var(--bc,#5aa0ff)}
+.burst.tele{--bc:#ffb02e;font-size:clamp(40px,10vw,110px)}.burst.gold{--bc:#ffd23d;font-size:clamp(46px,12vw,140px)}.burst.hit{--bc:#ff3355}.burst.miss{--bc:#3dff7a}.burst.mega{--bc:#ffd23d;font-size:clamp(46px,12vw,150px)}.burst.ko{--bc:#ff3355;font-size:clamp(60px,16vw,200px)}
+@keyframes pop{0%{transform:translate(-50%,-50%) rotate(-6deg) scale(.2);opacity:0}18%{transform:translate(-50%,-50%) rotate(-6deg) scale(1.15);opacity:1}30%{transform:translate(-50%,-50%) rotate(-6deg) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-62%) rotate(-6deg) scale(1);opacity:0}}
+.float{position:absolute;font-family:var(--marker);font-size:var(--fs,clamp(34px,6vw,64px));color:var(--c,#fff);text-shadow:0 0 14px var(--c,#fff),3px 3px 0 #000;transform:translate(-50%,0);white-space:nowrap;animation:fup 1.2s ease-out forwards}
+@keyframes fup{0%{opacity:0;transform:translate(-50%,20px) scale(.5)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-90px) scale(1)}}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;animation:fl .5s ease-out}
+@keyframes fl{0%{opacity:.85}100%{opacity:0}}
+
+/* ---------- result ---------- */
+#result{overflow-y:auto;background:radial-gradient(ellipse at 50% 40%,rgba(5,6,30,.5),rgba(4,5,22,.88))}
+.resin{margin:auto;width:100%;max-width:780px;padding:20px 16px 30px;text-align:center}
+.rtitle{font-family:var(--marker);font-size:clamp(46px,11vw,100px);line-height:.95;margin:0;transform:rotate(-3deg)}
+.rtitle.win{background:linear-gradient(180deg,#fff,#ffd23d);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 16px #ff9a00) drop-shadow(4px 4px 0 #6a2a00)}
+.rtitle.lose{color:#9aa4ff;text-shadow:0 0 14px #3b4bff,4px 4px 0 #000}
+.rsub{font-size:clamp(19px,3vw,26px);margin:8px 0 16px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left}
+.pc{--pc:var(--blue)}.pc.r{--pc:var(--pink)}
+.pc .box{background:var(--pc);clip-path:var(--chm);padding:3px}
+.pc .in{background:linear-gradient(#0d1038,#080a26);clip-path:var(--chm2);padding:12px 16px}
+.pc h3{margin:0 0 6px;font-family:var(--marker);font-weight:400;font-size:28px;color:#fff;text-shadow:0 0 10px var(--pc)}
+.pc .ln{display:flex;justify-content:space-between;gap:8px;font-size:20px;padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.14)}
+.pc .ln span:last-child{color:var(--pc);font-weight:700}
+.mist{margin-top:14px;text-align:left;background:rgba(6,8,34,.8);border:2px solid var(--red);padding:10px 16px;clip-path:var(--chm2)}
+.mist h4{margin:0 0 6px;font-family:var(--marker);font-weight:400;font-size:24px;color:var(--red)}
+.mist p{margin:3px 0;font-size:19px}
+.mist em{font-style:normal;color:var(--green)}
+.xpl{margin:14px 0 0;font-size:22px;color:var(--gold);text-shadow:0 0 8px #ff8a00}
+.btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+
+/* ---------- small screens ---------- */
+@media (max-width:760px){
+  .mf{display:none}
+  .hud{grid-template-columns:1fr 1fr}
+  .vs{position:absolute;left:50%;top:44px;transform:translateX(-50%) rotate(-6deg);font-size:46px;z-index:5;pointer-events:none}
+  .avatar{width:44px}
+  .cards{grid-template-columns:1fr 1fr;gap:8px}
+  .slots{display:none}
+  .topic{margin-bottom:2px}
+  .ci{padding:5px 8px 6px}
+  .fw.l{left:3%}.fw.r{right:3%}
+  .mlabel{left:20%}
+  .cols{grid-template-columns:1fr}
+  .ans{grid-template-columns:1fr}
+  .names{grid-template-columns:1fr}
+  .a{min-height:46px;padding-top:9px;padding-bottom:9px}
+  .meta{font-size:13px;gap:6px}
+}
+@media (max-height:640px) and (max-width:760px){ .qprompt{font-size:30px;margin-bottom:8px} .cards .ico{display:none} .ch b{padding-right:0} }
+@media (prefers-reduced-motion:reduce){ .fw svg,.combo.on,.orb.ready,.mlabel.ready{animation:none} }
+
+.shbtn{display:none;margin:8px auto 0;font-family:var(--marker);font-size:20px;padding:6px 18px;background:rgba(61,155,255,.18);border:2px solid var(--blue2);color:#fff;border-radius:4px;cursor:pointer}
+.shbtn.show{display:block}.shbtn.used{border-color:#3dff7a;background:rgba(61,255,122,.2)}.shbtn:disabled{opacity:.5;cursor:default}
+.warnbar{position:absolute;top:44px;left:50%;transform:translateX(-50%);font-family:var(--marker);font-size:clamp(14px,2vw,20px);padding:3px 14px;background:rgba(255,51,85,.85);color:#fff;border-radius:3px;display:none;z-index:5;white-space:nowrap;animation:pulse .7s infinite}
+.warnbar.on{display:block}.warnbar.gold{background:rgba(255,170,0,.9);color:#201000}
+.cnt{position:absolute;inset:0;display:none;place-items:center;z-index:30;font-family:var(--marker);font-size:clamp(90px,24vw,260px);color:#ffd23d;text-shadow:0 0 30px #ff8a00,5px 5px 0 #000;background:rgba(3,4,20,.55)}
+.cnt.on{display:grid}
+.training #arena,.training .hud,.training #cards,.training #mega{visibility:hidden}
+.rep{margin-top:14px;text-align:left;background:rgba(6,8,34,.8);border:2px solid var(--blue2);padding:10px 16px;clip-path:var(--chm2)}
+.rep h4{margin:0 0 6px;font-family:var(--marker);font-weight:400;font-size:24px;color:var(--blue2)}
+.rep .tr{display:flex;align-items:center;gap:10px;margin:3px 0;font-size:18px}.rep .tr span:first-child{width:130px}
+.rep .tb{flex:1;height:10px;background:rgba(255,255,255,.12);border-radius:5px;overflow:hidden}.rep .tb i{display:block;height:100%;background:var(--green)}.rep .tb i.w{background:var(--red)}.rep .tb i.m{background:var(--gold)}
+.rep .stats{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:19px;margin-bottom:6px}
+.rtit{color:#ffd23d;font-size:.7em}
+.mast{display:grid;gap:3px;margin-top:8px}.mast .tr{display:flex;align-items:center;gap:8px;font-size:16px}.mast .tr span:first-child{width:110px}.mast .tb{flex:1;height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}.mast .tb i{display:block;height:100%;background:var(--green)}.mast .tb i.w{background:var(--red)}.mast .tb i.m{background:var(--gold)}
+.smallrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}.smallrow .opt{min-width:0;flex:0 1 auto;font-size:16px}
+
+input,select{-webkit-user-select:text;user-select:text}
+#dict{background:radial-gradient(ellipse at 50% 30%,#10164f,#05061f);overflow:hidden}
+.dictin{width:100%;max-width:820px;margin:0 auto;height:100%;display:flex;flex-direction:column;padding:12px 14px 0}
+.dtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dtitle{font-family:var(--marker);font-weight:400;font-size:34px;color:#ffd23d;text-shadow:0 0 10px #ff8a00}
+#dSum{font-size:17px;opacity:.85;flex:1;text-align:right}
+.dfil{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.dfil input,.dfil select{font:inherit;font-size:18px;padding:5px 10px;color:#fff;background:#0d1038;border:2px solid var(--blue);border-radius:4px;outline:none;min-width:0}
+.dfil input{flex:1 1 180px}
+.dlist{flex:1;overflow-y:auto;padding-bottom:20px}
+.dr{display:grid;grid-template-columns:1.2fr 1.2fr auto;gap:10px;align-items:center;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.1);font-size:19px}
+.dr .de{color:#fff}.dr .ru{color:#b9c2ff}
+.dr .bd{font-size:15px;padding:1px 9px;border-radius:12px;border:1px solid;white-space:nowrap}
+.bd.new{color:#8a93c9;border-color:#8a93c9}.bd.learn{color:#ffd23d;border-color:#ffd23d}.bd.weak{color:#ff3355;border-color:#ff3355}.bd.known{color:#3dff7a;border-color:#3dff7a}
+.dsum{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:16px;margin-bottom:6px}
+.dmore{display:block;margin:12px auto}
+@media (max-width:560px){.dr{grid-template-columns:1fr 1fr;font-size:17px}.dr .bd{grid-column:1/3;justify-self:start}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== background scene ===== -->
+  <svg id="bg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#080b36"/><stop offset=".22" stop-color="#161a68"/>
+        <stop offset=".36" stop-color="#4a2a84"/><stop offset=".46" stop-color="#d3487a"/><stop offset=".52" stop-color="#ff8a6a"/>
+      </linearGradient>
+      <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1e62"/><stop offset=".5" stop-color="#101240"/><stop offset="1" stop-color="#07082a"/></linearGradient>
+      <linearGradient id="wallL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#090b30"/><stop offset="1" stop-color="#14185a"/></linearGradient>
+      <linearGradient id="wallR" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#090b30"/><stop offset="1" stop-color="#14185a"/></linearGradient>
+      <pattern id="chain" width="30" height="30" patternUnits="userSpaceOnUse" patternTransform="rotate(0)">
+        <path d="M0 0L30 30M30 0L0 30" stroke="#060724" stroke-width="2.2" fill="none"/>
+      </pattern>
+      <radialGradient id="gB" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3b6bff" stop-opacity=".5"/><stop offset="1" stop-color="#3b6bff" stop-opacity="0"/></radialGradient>
+      <radialGradient id="gP" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff3d9a" stop-opacity=".45"/><stop offset="1" stop-color="#ff3d9a" stop-opacity="0"/></radialGradient>
+      <radialGradient id="vig" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
+    </defs>
+    <rect width="1600" height="900" fill="url(#sky)"/>
+    <g fill="#ff5f9a" opacity=".16">
+      <ellipse cx="420" cy="300" rx="320" ry="14"/><ellipse cx="1150" cy="260" rx="380" ry="12"/><ellipse cx="800" cy="360" rx="520" ry="10"/>
+      <ellipse cx="300" cy="210" rx="220" ry="9"/><ellipse cx="1300" cy="360" rx="260" ry="9"/>
+    </g>
+    <g id="skyline"></g>
+    <!-- chain-link fence -->
+    <rect x="250" y="350" width="1100" height="290" fill="url(#chain)"/>
+    <rect x="244" y="334" width="1112" height="10" fill="#0b0c36"/>
+    <rect x="244" y="334" width="12" height="320" fill="#0b0c36"/><rect x="794" y="334" width="12" height="320" fill="#0b0c36"/><rect x="1344" y="334" width="12" height="320" fill="#0b0c36"/>
+    <!-- side walls -->
+    <path d="M0 110 L262 190 L262 700 L0 720Z" fill="url(#wallL)"/>
+    <path d="M1600 70 L1338 190 L1338 700 L1600 720Z" fill="url(#wallR)"/>
+    <g font-family="'Permanent Marker','Marker Felt',cursive" font-size="64" fill="#5f86ff" opacity=".42">
+      <g transform="translate(34 330) rotate(-20)"><text>BETTER</text><text y="62">THAN</text><text y="124">YESTERDAY</text></g>
+    </g>
+    <g font-family="'Permanent Marker','Marker Felt',cursive" font-size="64" fill="#b9a6ff" opacity=".36">
+      <g transform="translate(1368 300) rotate(-17)"><text>LEARN</text><text y="62">FIGHT</text><text y="124">WIN</text></g>
+    </g>
+    <path d="M1470 220 l10 -34 l16 20 l16 -26 l16 26 l16 -20 l10 34z" fill="none" stroke="#b9a6ff" stroke-width="5" opacity=".35"/>
+    <!-- hoop -->
+    <g stroke="#2a2f88" fill="none" stroke-width="7"><path d="M96 430 V700"/><rect x="96" y="388" width="116" height="78" stroke-width="5"/></g>
+    <ellipse cx="190" cy="468" rx="26" ry="7" fill="none" stroke="#ff4a4a" stroke-width="4"/>
+    <path d="M166 470 l8 34 M180 474 l4 34 M194 474 l-2 34 M208 470 l-8 34" stroke="#8a90d8" stroke-width="2" opacity=".6"/>
+    <!-- crate + chair -->
+    <g stroke="#2a2f88" stroke-width="4" fill="#0d0f3c"><rect x="1272" y="440" width="140" height="150"/><path d="M1272 440L1412 590M1412 440L1272 590" fill="none"/></g>
+    <g stroke="#0a0b30" stroke-width="9" fill="none" stroke-linecap="round"><path d="M1458 520 L1472 440 M1458 520 L1530 520 M1465 480 L1520 480 M1458 520 L1450 590 M1530 520 L1536 590"/></g>
+    <!-- floor -->
+    <path d="M0 640 H1600 V900 H0Z" fill="url(#floor)"/>
+    <ellipse cx="480" cy="760" rx="520" ry="120" fill="url(#gB)"/>
+    <ellipse cx="1120" cy="760" rx="520" ry="120" fill="url(#gP)"/>
+    <ellipse cx="800" cy="720" rx="660" ry="150" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="5"/>
+    <path d="M820 640 L805 690 L840 730 L815 800 L850 880" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="3"/>
+    <path d="M300 700 H1300" stroke="#fff" stroke-opacity=".05" stroke-width="2"/>
+    <rect width="1600" height="900" fill="url(#vig)"/>
+  </svg>
+
+  <!-- ===== MENU ===== -->
+  <section id="menu" class="screen active">
+    <div class="mf l fw-static" id="mfl"></div>
+    <div class="mf r fw-static" id="mfr"></div>
+    <div class="menuin">
+      <h1 class="title"><span>TRAINING</span><span>BATTLE</span></h1>
+      <div class="tagline">Выбирай удар. Отвечай на карту. Знания — твоя защита.</div>
+      <div class="lvl"><b id="lvlTxt">LEVEL 1</b><div class="xpbar"><i id="xpFill" style="width:0"></i></div><span id="xpTxt">0 XP</span></div>
+      <div class="panelw"><div class="panel"><div class="pin">
+        <div class="row">
+          <div class="lab">Бойцы</div>
+          <div class="names"><input id="n0" maxlength="12" value="Robin" aria-label="Имя первого бойца"><input id="n1" maxlength="12" value="Klark" aria-label="Имя второго бойца"></div>
+        </div>
+        <div class="row">
+          <div class="lab">Режим</div>
+          <div class="seg2" id="modeSeg">
+            <button class="opt on" data-v="bot">Соло против бота</button>
+            <button class="opt" data-v="pvp">Двое за одним экраном</button>
+          </div>
+        </div>
+        <div class="row" id="botRow">
+          <div class="lab">Сила бота</div>
+          <div class="seg2" id="botSeg">
+            <button class="opt" data-v="0">Новичок</button>
+            <button class="opt on" data-v="1">Боец</button>
+            <button class="opt" data-v="2">Профессор</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="lab">Темы карт (минимум 4)</div>
+          <div class="chips" id="chips"></div>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="tTimer" checked> Таймер на ответ</label>
+          <label><input type="checkbox" id="tSound" checked> Звук</label>
+        </div>
+      </div></div></div>
+      <button class="big" id="go">START BATTLE</button>
+      <div class="smallrow"><button class="opt" id="openDict">📖 Словарь</button><button class="opt" id="trainWeak">🧠 Тренировка слабых тем</button><button class="opt" id="trainMist">🔁 Мои ошибки</button><button class="opt" id="expSave">⬇ Экспорт</button><button class="opt" id="impSave">⬆ Импорт</button><button class="opt" id="impWords">📚 Загрузить слова</button><button class="opt" id="clrWords">🗑 Убрать мои слова</button><input type="file" id="wFile" accept=".txt,.csv,.tsv,.json,text/plain" style="display:none"><input type="file" id="impFile" accept="application/json" style="display:none"></div><div id="tmsg" style="text-align:center;min-height:22px;margin-top:6px;opacity:.8;font-size:17px"></div>
+      <details class="how"><summary>Мастерство по темам</summary><div class="mast" id="mast"></div></details>
+      <details class="how">
+        <summary>Как играть</summary>
+        <p><b>Атакующий</b> выбирает карту: Defolt, Normal, Epik или Crit. Чем сильнее удар, тем сложнее вопрос.</p>
+        <p><b>Защищающийся</b> отвечает на карту. Верно — удар мимо и заряд Mega Punch. Неверно — удар попадает.</p>
+        <p>Серия верных ответов даёт <b>Combo</b>: каждый шаг усиливает твои удары на 10% (до +50%). Ошибка сбрасывает серию.</p>
+        <p>Ошибки возвращаются как <b>Revenge</b>-карты. Ошибёшься второй раз — урон ×1.5. Сильные карты уходят на перезарядку.</p>
+        <p>Вопросы — простой перевод слов: с немецкого на русский (лёгкие карты) и обратно (сильные карты). После ответа показывается слово с артиклем — кликни или нажми Пробел, чтобы идти дальше. Свой список слов можно загрузить кнопкой «📚 Загрузить слова» (строки вида: der Hund;собака).</p>
+        <p><b>Новое:</b> Defolt даёт защитнику +1 заряд за верный ответ. Normal два раза подряд даёт <b>Momentum</b> (+5 урона). Epik сбивает 2 заряда Mega. Crit бьёт сильнее при ошибке, но при верном ответе даёт <b>Backfire</b> (−1 Combo, −1 заряд).</p>
+        <p><b>Щит 🛡</b>: 2 на бой. Нажми до ответа — если ошибёшься, урон не пройдёт. <b>Sudden Death</b>: когда у обоих ≤20 HP, любая ошибка — поражение.</p>
+        <p>Горячие клавиши: 1–4 — карта или ответ, Пробел — Mega Punch, S — щит.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ===== BATTLE ===== -->
+  <section id="battle" class="screen">
+    <div class="hud">
+      <div class="pbox left" id="pb0">
+        <div class="avwrap"><div class="avatar"><div><svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="7.5" fill="#fff"/><path d="M5 40 C5 26 12 23 20 23 S35 26 35 40Z" fill="#fff"/></svg></div></div></div>
+        <div class="pinfo">
+          <div class="pname" id="nm0">Robin</div>
+          <div class="hptxt" id="hpt0">100 HP</div>
+          <div class="bar" id="bar0"></div>
+          <div class="meta"><span class="combo" id="cb0">COMBO ×0</span><span class="pips" id="pp0"></span></div>
+        </div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="pbox right" id="pb1">
+        <div class="avwrap"><div class="avatar"><div><svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="7.5" fill="#fff"/><path d="M5 40 C5 26 12 23 20 23 S35 26 35 40Z" fill="#fff"/></svg></div></div></div>
+        <div class="pinfo">
+          <div class="pname" id="nm1">Klark</div>
+          <div class="hptxt" id="hpt1">100 HP</div>
+          <div class="bar" id="bar1"></div>
+          <div class="meta"><span class="combo" id="cb1">COMBO ×0</span><span class="pips" id="pp1"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="arena" id="arena">
+      <div class="status" id="status"></div><div class="warnbar" id="warn"></div>
+      <div class="fw l" id="f0"></div>
+      <div class="fw r" id="f1"></div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="mega" id="mega">
+      <div class="bolt"><div><svg viewBox="0 0 40 40"><path d="M23 3L10 23h9l-3 14 15-22h-9z" fill="#fff"/></svg></div></div>
+      <div class="mtrack" id="mtrack"><div class="mlabel" id="mlabel">Mega Punch</div></div>
+      <button class="orb" id="orb" aria-label="Mega Punch">
+        <svg viewBox="0 0 100 100"><defs><radialGradient id="og" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#d9b8ff"/><stop offset=".45" stop-color="#6a3cff"/><stop offset="1" stop-color="#12104a"/></radialGradient></defs>
+          <polygon id="orbstar" fill="#8a4dff" opacity=".85"/><circle cx="50" cy="50" r="26" fill="url(#og)" stroke="#e8d9ff" stroke-width="3"/></svg>
+      </button>
+    </div>
+    <div class="fx" id="fx"></div><div class="cnt" id="cnt"></div>
+    <div class="qov" id="qov">
+      <div class="qwrap" id="qwrap"><div class="qbox"><div class="qin">
+        <div class="qtop"><span class="ico" id="qico"></span><b id="qrar">Epik</b><span class="qt" id="qtopic">Blumen</span><span class="qdmg" id="qdmg">−25</span></div>
+        <div class="qwho"><span id="qwho"></span><span class="rev" id="qrev">REVENGE</span></div>
+        <div class="tbar" id="tbar"><i id="tfill"></i></div>
+        <div class="qlabel" id="qlabel"></div>
+        <div class="qprompt" id="qprompt"></div>
+        <div class="ans" id="ans"></div>
+        <button class="shbtn" id="shbtn">🛡 Щит (S)</button><div class="qres" id="qres"></div>
+        <div class="qexp" id="qexp"></div>
+        <div class="smallrow"><button class="opt" id="qexit" style="display:none">✕ Выйти из тренировки</button></div><div class="qskip" id="qskip">нажми, чтобы продолжить</div>
+      </div></div></div>
+    </div>
+  </section>
+
+  <!-- ===== DICT ===== -->
+  <section id="dict" class="screen"><div class="dictin">
+    <div class="dtop"><button class="opt" id="dBack" style="flex:0 0 auto;min-width:0">← Меню</button><b class="dtitle">СЛОВАРЬ</b><span id="dSum"></span></div>
+    <div class="dfil"><input id="dQ" placeholder="Поиск по слову или переводу…" aria-label="Поиск"><select id="dCat" aria-label="Категория"></select>
+      <select id="dSt" aria-label="Статус"><option value="all">Все слова</option><option value="new">Не встречались</option><option value="weak">Слабые</option><option value="learn">Учатся</option><option value="known">Выучены</option></select></div>
+    <div class="dsum" id="dStat"></div>
+    <div class="dlist" id="dList"></div>
+  </div></section>
+
+  <!-- ===== RESULT ===== -->
+  <section id="result" class="screen"><div class="resin" id="resin"></div></section>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ================= DATA ================= */
+const WORDCATS=[["verben","Глаголы",[["sein","быть"],["haben","иметь"],["werden","становиться"],["können","мочь, уметь"],["müssen","быть должным"],["wollen","хотеть"],["sollen","следует"],["dürfen","разрешено"],["mögen","любить, нравиться"],["gehen","идти"],["kommen","приходить"],["fahren","ехать"],["laufen","бежать"],["fliegen","летать"],["reisen","путешествовать"],["bleiben","оставаться"],["stehen","стоять"],["sitzen","сидеть"],["liegen","лежать"],["legen","класть"],["stellen","ставить"],["setzen","сажать"],["hängen","висеть"],["holen","приносить"],["bringen","приносить, доставлять"],["nehmen","брать"],["geben","давать"],["machen","делать"],["tun","делать, совершать"],["arbeiten","работать"],["lernen","учить"],["studieren","учиться в вузе"],["lehren","преподавать"],["unterrichten","обучать"],["verstehen","понимать"],["wissen","знать"],["kennen","быть знакомым"],["denken","думать"],["glauben","верить"],["meinen","полагать"],["finden","находить"],["suchen","искать"],["sehen","видеть"],["schauen","смотреть"],["ansehen","рассматривать"],["beobachten","наблюдать"],["hören","слышать"],["zuhören","слушать"],["sprechen","говорить"],["sagen","сказать"],["reden","разговаривать"],["erzählen","рассказывать"],["fragen","спрашивать"],["antworten","отвечать"],["rufen","звать"],["schreien","кричать"],["flüstern","шептать"],["diskutieren","обсуждать"],["erklären","объяснять"],["beschreiben","описывать"],["lesen","читать"],["schreiben","писать"],["zeichnen","рисовать"],["malen","красить, рисовать красками"],["rechnen","считать"],["zählen","считать"],["essen","есть"],["trinken","пить"],["kochen","варить, готовить"],["backen","печь"],["braten","жарить"],["schneiden","резать"],["schmecken","быть на вкус"],["frühstücken","завтракать"],["schlafen","спать"],["aufstehen","вставать"],["wachen","бодрствовать"],["träumen","мечтать, видеть сны"],["ausruhen","отдыхать"],["duschen","принимать душ"],["baden","купаться"],["waschen","мыть, стирать"],["putzen","чистить"],["anziehen","надевать"],["ausziehen","снимать одежду"],["tragen","носить"],["kaufen","покупать"],["verkaufen","продавать"],["bezahlen","оплачивать"],["kosten","стоить"],["sparen","экономить"],["ausgeben","тратить"],["bestellen","заказывать"],["leihen","одалживать"],["schenken","дарить"],["besitzen","владеть"],["brauchen","нуждаться"],["benutzen","использовать"],["verwenden","применять"],["öffnen","открывать"],["schließen","закрывать"],["beginnen","начинать"],["anfangen","начинать"],["aufhören","прекращать"],["enden","заканчиваться"],["warten","ждать"],["dauern","длиться"],["passieren","происходить"],["geschehen","случаться"],["leben","жить"],["wohnen","проживать"],["sterben","умирать"],["geboren werden","рождаться"],["heiraten","жениться, выходить замуж"],["lieben","любить"],["hassen","ненавидеть"],["vermissen","скучать"],["küssen","целовать"],["umarmen","обнимать"],["lachen","смеяться"],["weinen","плакать"],["lächeln","улыбаться"],["freuen","радовать"],["ärgern","злить"],["fürchten","бояться"],["hoffen","надеяться"],["wünschen","желать"],["erwarten","ожидать"],["vergessen","забывать"],["erinnern","напоминать"],["merken","замечать"],["bemerken","замечать"],["üben","тренироваться"],["wiederholen","повторять"],["trainieren","тренировать"],["spielen","играть"],["tanzen","танцевать"],["singen","петь"],["feiern","праздновать"],["besuchen","посещать"],["treffen","встречать"],["einladen","приглашать"],["begrüßen","приветствовать"],["verabschieden","прощаться"],["helfen","помогать"],["unterstützen","поддерживать"],["retten","спасать"],["schützen","защищать"],["warnen","предупреждать"],["raten","советовать"],["empfehlen","рекомендовать"],["vorschlagen","предлагать"],["anbieten","предлагать"],["bitten","просить"],["danken","благодарить"],["entschuldigen","извинять"],["verzeihen","прощать"],["versprechen","обещать"],["erlauben","разрешать"],["verbieten","запрещать"],["zwingen","принуждать"],["entscheiden","решать"],["wählen","выбирать"],["planen","планировать"],["vorbereiten","подготавливать"],["organisieren","организовывать"],["versuchen","пытаться"],["probieren","пробовать"],["schaffen","справляться"],["gelingen","удаваться"],["scheitern","терпеть неудачу"],["gewinnen","выигрывать"],["verlieren","терять, проигрывать"],["kämpfen","бороться"],["streiten","ссориться"],["vergleichen","сравнивать"],["unterscheiden","различать"],["ändern","менять"],["wechseln","менять, обменивать"],["verändern","изменять"],["entwickeln","развивать"],["wachsen","расти"],["steigen","подниматься"],["fallen","падать"],["sinken","опускаться"],["springen","прыгать"],["klettern","лазить"],["schwimmen","плавать"],["tauchen","нырять"],["rennen","мчаться"],["ziehen","тянуть"],["schieben","толкать"],["drücken","нажимать"],["werfen","бросать"],["fangen","ловить"],["halten","держать"],["heben","поднимать"],["senken","опускать"],["fassen","хватать"],["greifen","хватать"],["berühren","касаться"],["schlagen","бить"],["treten","ступать, пинать"],["stoßen","толкать"],["brechen","ломать"],["zerstören","разрушать"],["reparieren","ремонтировать"],["bauen","строить"],["renovieren","ремонтировать"],["aufbauen","возводить"],["abbauen","разбирать"],["packen","упаковывать"],["auspacken","распаковывать"],["einpacken","упаковывать"],["mitnehmen","брать с собой"],["mitbringen","приносить с собой"],["abholen","забирать"],["schicken","посылать"],["senden","отправлять"],["bekommen","получать"],["erhalten","получать"],["empfangen","принимать"],["liefern","доставлять"],["anrufen","звонить"],["telefonieren","говорить по телефону"],["klingeln","звонить"],["klopfen","стучать"],["mitteilen","сообщать"],["informieren","информировать"],["berichten","сообщать"],["zeigen","показывать"],["präsentieren","представлять"],["vorstellen","представлять"],["bedeuten","значить"],["heißen","называться"],["nennen","называть"],["übersetzen","переводить"],["buchstabieren","говорить по буквам"],["korrigieren","исправлять"],["prüfen","проверять"],["kontrollieren","контролировать"],["testen","тестировать"],["messen","измерять"],["wiegen","взвешивать"],["sammeln","собирать"],["ordnen","упорядочивать"],["sortieren","сортировать"],["trennen","разделять"],["verbinden","соединять"],["mischen","смешивать"],["füllen","наполнять"],["leeren","опорожнять"],["gießen","поливать, лить"],["schütten","сыпать"],["tropfen","капать"],["fließen","течь"],["brennen","гореть"],["leuchten","светить"],["scheinen","светить, казаться"],["glänzen","блестеть"],["riechen","пахнуть"],["fühlen","чувствовать"],["spüren","ощущать"],["schmerzen","болеть"],["wehtun","причинять боль"],["husten","кашлять"],["niesen","чихать"],["atmen","дышать"],["schwitzen","потеть"],["frieren","мёрзнуть"],["heilen","лечить"],["behandeln","лечить"],["untersuchen","обследовать"],["operieren","оперировать"],["pflegen","ухаживать"],["gesund werden","выздоравливать"],["erkälten","простужаться"],["verletzen","ранить"],["bluten","кровоточить"],["ausgehen","выходить"],["eintreten","входить"],["verlassen","покидать"],["ankommen","прибывать"],["abfahren","отправляться"],["losfahren","трогаться"],["umsteigen","пересаживаться"],["einsteigen","садиться в транспорт"],["aussteigen","выходить из транспорта"],["landen","приземляться"],["starten","стартовать"],["parken","парковать"],["abbiegen","поворачивать"],["überqueren","пересекать"],["folgen","следовать"],["begleiten","сопровождать"],["führen","вести"],["leiten","руководить"],["erreichen","достигать"],["verpassen","упускать"],["zurückkehren","возвращаться"],["zurückkommen","возвращаться"],["umziehen","переезжать"],["einziehen","въезжать"],["verreisen","уезжать в поездку"],["übernachten","ночевать"],["buchen","бронировать"],["reservieren","резервировать"],["absagen","отменять"],["verschieben","откладывать"],["stornieren","аннулировать"],["bewerben","подавать заявку"],["einstellen","нанимать"],["kündigen","увольняться"],["verdienen","зарабатывать"],["arbeitslos sein","быть безработным"],["unterschreiben","подписывать"],["ausfüllen","заполнять"],["beantragen","ходатайствовать"],["anmelden","регистрировать"],["abmelden","отменять регистрацию"],["teilnehmen","участвовать"],["mitmachen","участвовать"],["bestehen","сдавать экзамен"],["durchfallen","провалиться"],["abschließen","завершать"],["gehören","принадлежать"],["enthalten","содержать"],["bestehen aus","состоять из"],["betreffen","касаться"],["berücksichtigen","учитывать"],["beachten","соблюдать"],["akzeptieren","принимать"],["ablehnen","отклонять"],["zustimmen","соглашаться"],["widersprechen","возражать"],["behaupten","утверждать"],["beweisen","доказывать"],["zweifeln","сомневаться"],["vermuten","предполагать"],["annehmen","предполагать"],["überlegen","обдумывать"],["nachdenken","размышлять"],["sich erinnern","вспоминать"],["sich interessieren","интересоваться"],["sich freuen","радоваться"],["sich ärgern","сердиться"],["sich fühlen","чувствовать себя"],["sich treffen","встречаться"],["sich beeilen","спешить"],["sich setzen","садиться"],["sich legen","ложиться"],["sich waschen","умываться"],["sich anziehen","одеваться"],["sich kümmern","заботиться"],["sich entscheiden","решаться"],["sich entschuldigen","извиняться"],["sich bewerben","претендовать"],["sich vorstellen","представляться"],["sich verabreden","договариваться о встрече"],["sich verlaufen","заблудиться"],["sich verspäten","опаздывать"],["sich unterhalten","беседовать"],["sich streiten","ссориться"],["sich versöhnen","мириться"],["sich trennen","расставаться"],["sich verlieben","влюбляться"],["sich ausruhen","отдыхать"],["sich erholen","восстанавливаться"],["sich bedanken","благодарить"],["sich wundern","удивляться"],["sich sorgen","беспокоиться"],["entstehen","возникать"],["vorkommen","встречаться"],["stattfinden","состояться"],["gelten","считаться"],["fehlen","не хватать"],["genügen","хватать"],["reichen","хватать"],["nützen","приносить пользу"],["schaden","вредить"],["stören","мешать"],["lösen","решать"],["beschäftigen","занимать"],["beteiligen","вовлекать"],["sorgen","заботиться"],["verbrauchen","расходовать"],["produzieren","производить"],["herstellen","изготавливать"],["erfinden","изобретать"],["entdecken","открывать"],["forschen","исследовать"],["veröffentlichen","публиковать"],["drucken","печатать"],["speichern","сохранять"],["löschen","удалять"],["herunterladen","скачивать"],["hochladen","загружать"],["klicken","кликать"],["surfen","сёрфить"],["chatten","общаться в чате"],["mailen","писать по почте"]]],["haus","Дом и быт",[["das Haus","дом"],["die Wohnung","квартира"],["das Zimmer","комната"],["die Küche","кухня"],["das Bad","ванная"],["das Schlafzimmer","спальня"],["das Wohnzimmer","гостиная"],["das Kinderzimmer","детская"],["der Flur","прихожая"],["der Keller","подвал"],["der Dachboden","чердак"],["das Dach","крыша"],["der Balkon","балкон"],["die Terrasse","терраса"],["der Garten","сад"],["der Hof","двор"],["die Garage","гараж"],["die Tür","дверь"],["das Fenster","окно"],["die Wand","стена"],["der Boden","пол"],["die Decke","потолок, одеяло"],["die Treppe","лестница"],["der Aufzug","лифт"],["der Schlüssel","ключ"],["das Schloss","замок"],["die Klingel","звонок"],["der Briefkasten","почтовый ящик"],["die Miete","арендная плата"],["der Vermieter","арендодатель"],["der Mieter","арендатор"],["der Nachbar","сосед"],["der Umzug","переезд"],["das Möbel","мебель"],["der Tisch","стол"],["der Stuhl","стул"],["der Sessel","кресло"],["das Sofa","диван"],["das Bett","кровать"],["der Schrank","шкаф"],["das Regal","полка"],["der Spiegel","зеркало"],["die Lampe","лампа"],["das Licht","свет"],["der Teppich","ковёр"],["der Vorhang","занавеска"],["das Kissen","подушка"],["die Heizung","отопление"],["der Ofen","печь, духовка"],["der Herd","плита"],["der Kühlschrank","холодильник"],["die Waschmaschine","стиральная машина"],["der Fernseher","телевизор"],["das Radio","радио"],["der Computer","компьютер"],["der Drucker","принтер"],["das Handy","мобильный телефон"],["das Telefon","телефон"],["das Ladegerät","зарядное устройство"],["die Steckdose","розетка"],["das Kabel","кабель"],["die Batterie","батарейка"],["die Uhr","часы"],["der Wecker","будильник"],["die Tasse","чашка"],["das Glas","стакан"],["der Teller","тарелка"],["die Schüssel","миска"],["der Löffel","ложка"],["die Gabel","вилка"],["das Messer","нож"],["der Topf","кастрюля"],["die Pfanne","сковорода"],["die Flasche","бутылка"],["die Dose","банка"],["die Tüte","пакет"],["der Korb","корзина"],["der Eimer","ведро"],["der Besen","метла"],["der Müll","мусор"],["die Seife","мыло"],["das Handtuch","полотенце"],["die Zahnbürste","зубная щётка"],["die Zahnpasta","зубная паста"],["das Shampoo","шампунь"],["der Kamm","расчёска"],["die Bürste","щётка"],["die Dusche","душ"],["die Badewanne","ванна"],["die Toilette","туалет"],["das Waschbecken","раковина"],["das Papier","бумага"],["der Stift","ручка"],["der Bleistift","карандаш"],["der Kugelschreiber","шариковая ручка"],["das Heft","тетрадь"],["das Buch","книга"],["der Brief","письмо"],["die Postkarte","открытка"],["der Umschlag","конверт"],["die Briefmarke","почтовая марка"],["das Paket","посылка"],["die Schere","ножницы"],["der Kleber","клей"],["die Tasche","сумка"],["der Rucksack","рюкзак"],["der Koffer","чемодан"],["der Geldbeutel","кошелёк"],["der Regenschirm","зонт"],["die Brille","очки"],["der Ring","кольцо"],["die Kette","цепочка"],["die Kleidung","одежда"],["das Hemd","рубашка"],["die Bluse","блузка"],["die Hose","брюки"],["die Jeans","джинсы"],["der Rock","юбка"],["das Kleid","платье"],["die Jacke","куртка"],["der Mantel","пальто"],["der Pullover","свитер"],["das T-Shirt","футболка"],["die Socke","носок"],["der Schuh","ботинок, туфля"],["der Stiefel","сапог"],["die Mütze","шапка"],["der Hut","шляпа"],["der Schal","шарф"],["der Handschuh","перчатка"],["der Gürtel","ремень"],["die Krawatte","галстук"],["der Anzug","костюм"],["die Unterwäsche","нижнее бельё"],["der Pyjama","пижама"],["das Feuer","огонь"],["der Rauch","дым"],["die Kerze","свеча"],["das Werkzeug","инструмент"],["der Hammer","молоток"],["der Nagel","гвоздь"],["die Schraube","винт"],["die Leiter","стремянка"],["die Farbe","краска, цвет"]]],["essen","Еда и покупки",[["das Essen","еда"],["das Frühstück","завтрак"],["das Mittagessen","обед"],["das Abendessen","ужин"],["die Mahlzeit","приём пищи"],["das Getränk","напиток"],["das Wasser","вода"],["der Saft","сок"],["die Milch","молоко"],["der Tee","чай"],["der Kaffee","кофе"],["das Bier","пиво"],["der Wein","вино"],["das Brot","хлеб"],["das Brötchen","булочка"],["der Kuchen","пирог"],["die Torte","торт"],["die Butter","сливочное масло"],["der Käse","сыр"],["die Wurst","колбаса"],["der Schinken","ветчина"],["das Fleisch","мясо"],["das Hähnchen","курица"],["das Rindfleisch","говядина"],["das Schweinefleisch","свинина"],["der Fisch","рыба"],["das Ei","яйцо"],["der Reis","рис"],["die Nudel","макаронина"],["die Kartoffel","картофель"],["die Pommes","картофель фри"],["die Suppe","суп"],["der Salat","салат"],["das Gemüse","овощи"],["das Obst","фрукты"],["der Apfel","яблоко"],["die Birne","груша"],["die Banane","банан"],["die Orange","апельсин"],["die Zitrone","лимон"],["die Erdbeere","клубника"],["die Kirsche","вишня"],["die Traube","виноград"],["die Tomate","помидор"],["die Gurke","огурец"],["die Karotte","морковь"],["die Zwiebel","лук"],["der Knoblauch","чеснок"],["der Pilz","гриб"],["die Bohne","фасоль"],["die Erbse","горох"],["der Mais","кукуруза"],["die Nuss","орех"],["der Zucker","сахар"],["das Salz","соль"],["der Pfeffer","перец"],["das Öl","масло"],["der Essig","уксус"],["das Mehl","мука"],["der Honig","мёд"],["die Marmelade","варенье"],["die Schokolade","шоколад"],["das Eis","мороженое, лёд"],["der Keks","печенье"],["die Süßigkeit","сладость"],["die Sahne","сливки"],["der Joghurt","йогурт"],["die Speisekarte","меню"],["die Rechnung","счёт"],["das Trinkgeld","чаевые"],["der Kellner","официант"],["das Restaurant","ресторан"],["das Café","кафе"],["die Kantine","столовая"],["der Supermarkt","супермаркет"],["der Markt","рынок"],["die Bäckerei","пекарня"],["die Metzgerei","мясная лавка"],["die Apotheke","аптека"],["das Geschäft","магазин"],["der Laden","лавка"],["der Einkauf","покупка"],["die Kasse","касса"],["der Preis","цена"],["das Angebot","предложение, акция"],["der Rabatt","скидка"],["das Geld","деньги"],["das Bargeld","наличные"],["die Karte","карта"],["die Münze","монета"],["der Schein","купюра"],["das Kleingeld","мелочь"],["die Bank","банк"],["das Konto","счёт в банке"],["die Verpackung","упаковка"],["die Waage","весы"],["das Kilo","килограмм"],["das Gramm","грамм"],["der Liter","литр"],["die Hälfte","половина"],["die Portion","порция"],["der Hunger","голод"],["der Durst","жажда"],["der Appetit","аппетит"]]],["koerper","Тело и здоровье",[["der Körper","тело"],["der Kopf","голова"],["das Gesicht","лицо"],["das Haar","волос"],["das Auge","глаз"],["das Ohr","ухо"],["die Nase","нос"],["der Mund","рот"],["die Lippe","губа"],["der Zahn","зуб"],["die Zunge","язык"],["der Hals","шея, горло"],["die Stirn","лоб"],["die Wange","щека"],["das Kinn","подбородок"],["der Bart","борода"],["die Schulter","плечо"],["der Arm","рука"],["der Ellbogen","локоть"],["die Hand","кисть руки"],["der Finger","палец"],["der Daumen","большой палец"],["der Rücken","спина"],["die Brust","грудь"],["der Bauch","живот"],["das Bein","нога"],["das Knie","колено"],["der Fuß","ступня"],["die Zehe","палец ноги"],["die Haut","кожа"],["der Knochen","кость"],["das Herz","сердце"],["die Lunge","лёгкое"],["der Magen","желудок"],["das Blut","кровь"],["der Muskel","мышца"],["das Gehirn","мозг"],["die Stimme","голос"],["die Gesundheit","здоровье"],["die Krankheit","болезнь"],["der Arzt","врач"],["die Ärztin","женщина-врач"],["der Zahnarzt","стоматолог"],["die Krankenschwester","медсестра"],["das Krankenhaus","больница"],["die Praxis","врачебный кабинет"],["der Termin","назначенное время"],["die Untersuchung","обследование"],["die Behandlung","лечение"],["das Medikament","лекарство"],["die Tablette","таблетка"],["das Rezept","рецепт"],["das Pflaster","пластырь"],["der Verband","повязка"],["der Unfall","несчастный случай"],["der Notfall","экстренный случай"],["der Krankenwagen","скорая помощь"],["die Erkältung","простуда"],["der Husten","кашель"],["der Schnupfen","насморк"],["das Fieber","температура"],["die Grippe","грипп"],["der Schmerz","боль"],["die Kopfschmerzen","головная боль"],["die Bauchschmerzen","боль в животе"],["die Allergie","аллергия"],["die Wunde","рана"],["der Schlaf","сон"],["die Ruhe","покой"],["die Diät","диета"],["der Sport","спорт"],["die Bewegung","движение"],["die Kraft","сила"],["die Müdigkeit","усталость"],["das Gefühl","чувство"],["die Freude","радость"],["die Angst","страх"],["die Wut","злость"],["die Trauer","печаль"],["die Sorge","забота, тревога"],["die Liebe","любовь"],["die Hoffnung","надежда"],["die Laune","настроение"],["der Stress","стресс"],["das Glück","счастье, удача"],["der Mut","смелость"],["der Wunsch","желание"],["der Traum","мечта, сон"]]],["arbeit","Работа и учёба",[["die Arbeit","работа"],["der Beruf","профессия"],["die Stelle","место работы"],["der Job","подработка"],["die Firma","фирма"],["das Unternehmen","предприятие"],["das Büro","офис"],["die Fabrik","фабрика"],["der Chef","начальник"],["der Kollege","коллега"],["der Mitarbeiter","сотрудник"],["der Angestellte","служащий"],["der Arbeiter","рабочий"],["der Arbeitgeber","работодатель"],["der Lehrling","ученик ремесленника"],["die Ausbildung","профессиональное обучение"],["die Bewerbung","заявление о приёме"],["der Lebenslauf","резюме"],["das Vorstellungsgespräch","собеседование"],["das Gehalt","зарплата"],["der Lohn","оплата труда"],["der Vertrag","договор"],["der Urlaub","отпуск"],["die Pause","перерыв"],["die Besprechung","совещание"],["die Sitzung","заседание"],["die Aufgabe","задание"],["das Projekt","проект"],["das Ergebnis","результат"],["der Erfolg","успех"],["der Fehler","ошибка"],["das Problem","проблема"],["die Lösung","решение"],["die Idee","идея"],["der Plan","план"],["das Ziel","цель"],["die Erfahrung","опыт"],["die Kenntnis","знание"],["die Fähigkeit","способность"],["die Schule","школа"],["der Schüler","школьник"],["der Lehrer","учитель"],["der Student","студент"],["die Universität","университет"],["die Klasse","класс"],["der Unterricht","урок, занятия"],["die Stunde","час, урок"],["die Hausaufgabe","домашнее задание"],["die Frage","вопрос"],["die Antwort","ответ"],["das Fach","предмет"],["die Note","оценка"],["das Zeugnis","свидетельство"],["das Diplom","диплом"],["der Kurs","курс"],["das Wort","слово"],["der Satz","предложение"],["der Text","текст"],["die Sprache","язык"],["die Grammatik","грамматика"],["das Wörterbuch","словарь"],["die Zahl","число"],["die Seite","страница"],["die Zeile","строка"],["der Buchstabe","буква"],["die Übung","упражнение"],["das Beispiel","пример"],["die Regel","правило"],["das Thema","тема"],["die Tafel","доска"],["die Bibliothek","библиотека"],["das Wissen","знания"],["die Wissenschaft","наука"],["die Forschung","исследование"],["die Meinung","мнение"],["der Grund","причина"],["die Möglichkeit","возможность"],["die Chance","шанс"],["die Schwierigkeit","трудность"],["der Unterschied","различие"],["die Ähnlichkeit","сходство"],["die Information","информация"],["die Nachricht","сообщение, новость"],["die Zeitung","газета"],["die Zeitschrift","журнал"],["die Prüfung","экзамен"]]],["reise","Путешествия и город",[["die Reise","путешествие"],["die Fahrt","поездка"],["die Ferien","каникулы"],["der Ausflug","экскурсия"],["der Tourist","турист"],["das Hotel","отель"],["die Unterkunft","жильё"],["das Gepäck","багаж"],["das Visum","виза"],["die Grenze","граница"],["der Zoll","таможня"],["das Ticket","билет"],["die Fahrkarte","проездной билет"],["der Fahrplan","расписание"],["die Abfahrt","отправление"],["die Ankunft","прибытие"],["die Verspätung","опоздание"],["das Gleis","путь"],["der Bahnhof","вокзал"],["der Zug","поезд"],["die Bahn","железная дорога"],["die U-Bahn","метро"],["die Straßenbahn","трамвай"],["der Bus","автобус"],["die Haltestelle","остановка"],["das Taxi","такси"],["das Auto","автомобиль"],["der Wagen","машина"],["das Fahrrad","велосипед"],["das Motorrad","мотоцикл"],["das Flugzeug","самолёт"],["der Flughafen","аэропорт"],["der Flug","рейс"],["das Schiff","корабль"],["der Hafen","порт"],["die Fähre","паром"],["der Führerschein","водительские права"],["die Straße","улица"],["der Weg","дорога, путь"],["die Autobahn","автомагистраль"],["die Kreuzung","перекрёсток"],["die Ampel","светофор"],["die Brücke","мост"],["der Tunnel","туннель"],["die Ecke","угол"],["die Richtung","направление"],["der Stadtplan","план города"],["die Stadt","город"],["das Dorf","деревня"],["das Land","страна, село"],["die Hauptstadt","столица"],["das Zentrum","центр"],["der Platz","площадь"],["der Park","парк"],["das Gebäude","здание"],["das Rathaus","ратуша"],["die Kirche","церковь"],["das Museum","музей"],["das Theater","театр"],["das Kino","кинотеатр"],["die Post","почта"],["die Polizei","полиция"],["die Feuerwehr","пожарная служба"],["das Schwimmbad","бассейн"],["das Stadion","стадион"],["der Spielplatz","детская площадка"],["der Friedhof","кладбище"],["der Turm","башня"],["das Denkmal","памятник"],["die Sehenswürdigkeit","достопримечательность"],["der Parkplatz","парковка"],["die Tankstelle","заправка"],["die Werkstatt","мастерская"],["die Adresse","адрес"],["die Entfernung","расстояние"],["der Verkehr","движение"],["der Stau","пробка"],["die Baustelle","стройка"],["der Pass","паспорт"],["die Mauer","стена"]]],["natur","Природа, погода, время",[["die Natur","природа"],["die Welt","мир"],["die Erde","земля"],["die Sonne","солнце"],["der Mond","луна"],["der Stern","звезда"],["der Himmel","небо"],["die Wolke","облако"],["der Wind","ветер"],["der Regen","дождь"],["der Schnee","снег"],["der Nebel","туман"],["das Gewitter","гроза"],["der Sturm","буря"],["der Blitz","молния"],["der Donner","гром"],["die Hitze","жара"],["die Kälte","холод"],["das Wetter","погода"],["das Klima","климат"],["die Temperatur","температура"],["der Grad","градус"],["der Frühling","весна"],["der Sommer","лето"],["der Herbst","осень"],["der Winter","зима"],["die Jahreszeit","время года"],["der Berg","гора"],["das Tal","долина"],["der Hügel","холм"],["der Wald","лес"],["der Baum","дерево"],["der Busch","куст"],["das Gras","трава"],["die Blume","цветок"],["die Rose","роза"],["das Blatt","лист"],["die Wurzel","корень"],["der Ast","ветка"],["der Stein","камень"],["der Felsen","скала"],["der Sand","песок"],["das Meer","море"],["der See","озеро"],["der Fluss","река"],["der Bach","ручей"],["die Insel","остров"],["der Strand","пляж"],["die Küste","побережье"],["die Welle","волна"],["das Ufer","берег"],["das Feld","поле"],["die Wiese","луг"],["die Luft","воздух"],["die Umwelt","окружающая среда"],["das Tier","животное"],["der Hund","собака"],["die Katze","кошка"],["das Pferd","лошадь"],["die Kuh","корова"],["das Schwein","свинья"],["das Schaf","овца"],["die Ziege","коза"],["das Huhn","курица"],["die Ente","утка"],["die Gans","гусь"],["der Vogel","птица"],["die Maus","мышь"],["der Hase","заяц"],["der Fuchs","лиса"],["der Wolf","волк"],["der Bär","медведь"],["der Löwe","лев"],["der Elefant","слон"],["der Affe","обезьяна"],["die Schlange","змея"],["die Spinne","паук"],["die Fliege","муха"],["die Biene","пчела"],["der Käfer","жук"],["der Schmetterling","бабочка"],["die Zeit","время"],["die Sekunde","секунда"],["die Minute","минута"],["der Tag","день"],["die Woche","неделя"],["der Monat","месяц"],["das Jahr","год"],["das Jahrhundert","век"],["der Morgen","утро"],["der Vormittag","время до обеда"],["der Mittag","полдень"],["der Nachmittag","время после обеда"],["der Abend","вечер"],["die Nacht","ночь"],["die Mitternacht","полночь"],["heute","сегодня"],["gestern","вчера"],["morgen","завтра"],["der Montag","понедельник"],["der Dienstag","вторник"],["der Mittwoch","среда"],["der Donnerstag","четверг"],["der Freitag","пятница"],["der Samstag","суббота"],["der Sonntag","воскресенье"],["das Wochenende","выходные"],["der Feiertag","праздничный день"],["der Geburtstag","день рождения"],["das Datum","дата"],["die Vergangenheit","прошлое"],["die Gegenwart","настоящее"],["die Zukunft","будущее"],["der Anfang","начало"],["das Ende","конец"]]],["gesellschaft","Люди, общество, досуг",[["der Mensch","человек"],["die Person","персона"],["der Mann","мужчина"],["die Frau","женщина"],["das Kind","ребёнок"],["das Baby","младенец"],["der Junge","мальчик"],["das Mädchen","девочка"],["der Jugendliche","подросток"],["der Erwachsene","взрослый"],["der Senior","пожилой человек"],["die Familie","семья"],["die Eltern","родители"],["die Mutter","мать"],["der Vater","отец"],["der Sohn","сын"],["die Tochter","дочь"],["der Bruder","брат"],["die Schwester","сестра"],["die Geschwister","братья и сёстры"],["die Großmutter","бабушка"],["der Großvater","дедушка"],["die Oma","бабушка"],["der Opa","дедушка"],["der Onkel","дядя"],["die Tante","тётя"],["der Cousin","двоюродный брат"],["die Cousine","двоюродная сестра"],["der Enkel","внук"],["der Ehemann","муж"],["die Ehefrau","жена"],["das Paar","пара"],["der Freund","друг"],["die Freundin","подруга"],["der Gast","гость"],["der Partner","партнёр"],["der Bekannte","знакомый"],["der Fremde","чужой"],["die Hochzeit","свадьба"],["die Ehe","брак"],["die Scheidung","развод"],["die Beziehung","отношения"],["das Leben","жизнь"],["der Tod","смерть"],["die Geburt","рождение"],["das Alter","возраст"],["die Jugend","молодость"],["der Name","имя"],["der Vorname","имя (личное)"],["der Nachname","фамилия"],["die Staatsangehörigkeit","гражданство"],["die Heimat","родина"],["das Volk","народ"],["die Gesellschaft","общество"],["die Regierung","правительство"],["der Staat","государство"],["der Präsident","президент"],["die Politik","политика"],["die Wahl","выбор, выборы"],["das Gesetz","закон"],["das Recht","право"],["die Freiheit","свобода"],["der Frieden","мир"],["der Krieg","война"],["die Gewalt","насилие"],["die Sicherheit","безопасность"],["die Gefahr","опасность"],["das Gericht","суд"],["die Strafe","наказание"],["der Dieb","вор"],["das Verbrechen","преступление"],["die Religion","религия"],["die Kultur","культура"],["die Tradition","традиция"],["die Geschichte","история"],["das Fest","праздник"],["die Party","вечеринка"],["das Geschenk","подарок"],["die Einladung","приглашение"],["die Freizeit","свободное время"],["das Hobby","хобби"],["das Spiel","игра"],["der Fußball","футбол"],["der Ball","мяч"],["die Mannschaft","команда"],["der Spieler","игрок"],["das Training","тренировка"],["das Rennen","гонка"],["die Musik","музыка"],["das Lied","песня"],["das Konzert","концерт"],["die Gitarre","гитара"],["das Klavier","пианино"],["der Tanz","танец"],["das Foto","фотография"],["das Bild","картина, изображение"],["der Film","фильм"],["das Fernsehen","телевидение"],["die Sendung","передача"],["der Sänger","певец"],["der Künstler","художник"],["der Schauspieler","актёр"],["der Autor","автор"],["der Roman","роман"],["das Märchen","сказка"],["das Internet","интернет"],["die Webseite","веб-сайт"],["das Passwort","пароль"],["die E-Mail","электронное письмо"],["das Programm","программа"],["die Technik","техника"],["die Maschine","машина, станок"],["der Strom","электричество"],["die Energie","энергия"],["das Benzin","бензин"],["das Material","материал"],["das Eisen","железо"],["das Holz","дерево (материал)"],["das Plastik","пластик"],["das Gold","золото"],["das Silber","серебро"]]],["adjektive","Прилагательные",[["gut","хороший"],["schlecht","плохой"],["schön","красивый"],["hässlich","уродливый"],["groß","большой"],["klein","маленький"],["lang","длинный"],["kurz","короткий"],["hoch","высокий"],["niedrig","низкий"],["breit","широкий"],["schmal","узкий"],["dick","толстый"],["dünn","тонкий"],["schwer","тяжёлый, трудный"],["leicht","лёгкий"],["einfach","простой"],["schwierig","трудный"],["neu","новый"],["alt","старый"],["jung","молодой"],["modern","современный"],["frisch","свежий"],["sauber","чистый"],["schmutzig","грязный"],["trocken","сухой"],["nass","мокрый"],["warm","тёплый"],["heiß","горячий"],["kalt","холодный"],["kühl","прохладный"],["hell","светлый"],["dunkel","тёмный"],["laut","громкий"],["leise","тихий"],["schnell","быстрый"],["langsam","медленный"],["früh","ранний"],["spät","поздний"],["stark","сильный"],["schwach","слабый"],["hart","твёрдый"],["weich","мягкий"],["glatt","гладкий"],["scharf","острый"],["spitz","заострённый"],["rund","круглый"],["eckig","угловатый"],["gerade","прямой"],["offen","открытый"],["geschlossen","закрытый"],["voll","полный"],["leer","пустой"],["reich","богатый"],["arm","бедный"],["teuer","дорогой"],["billig","дешёвый"],["günstig","выгодный"],["kostenlos","бесплатный"],["wichtig","важный"],["unwichtig","неважный"],["richtig","правильный"],["falsch","неправильный"],["wahr","правдивый"],["möglich","возможный"],["unmöglich","невозможный"],["nötig","необходимый"],["nützlich","полезный"],["sicher","надёжный"],["gefährlich","опасный"],["ruhig","спокойный"],["nervös","нервный"],["freundlich","дружелюбный"],["unfreundlich","недружелюбный"],["höflich","вежливый"],["nett","милый"],["böse","злой"],["ehrlich","честный"],["mutig","смелый"],["ängstlich","боязливый"],["klug","умный"],["dumm","глупый"],["intelligent","интеллигентный"],["faul","ленивый"],["fleißig","трудолюбивый"],["müde","усталый"],["wach","бодрствующий"],["gesund","здоровый"],["krank","больной"],["verletzt","раненый"],["hungrig","голодный"],["satt","сытый"],["durstig","жаждущий"],["glücklich","счастливый"],["traurig","грустный"],["fröhlich","весёлый"],["lustig","смешной"],["ernst","серьёзный"],["langweilig","скучный"],["interessant","интересный"],["spannend","захватывающий"],["komisch","странный, смешной"],["seltsam","странный"],["normal","нормальный"],["besonders","особенный"],["typisch","типичный"],["berühmt","знаменитый"],["bekannt","известный"],["unbekannt","неизвестный"],["beliebt","любимый"],["verschieden","разный"],["gleich","одинаковый"],["ähnlich","похожий"],["anders","другой"],["ganz","целый"],["halb","половинный"],["einzig","единственный"],["erste","первый"],["letzte","последний"],["nächste","следующий"],["vorige","предыдущий"],["täglich","ежедневный"],["wöchentlich","еженедельный"],["monatlich","ежемесячный"],["jährlich","ежегодный"],["heutig","сегодняшний"],["früher","прежний"],["künftig","будущий"],["fertig","готовый"],["bereit","готовый"],["frei","свободный"],["besetzt","занятый"],["beschäftigt","занятой"],["verheiratet","женатый, замужняя"],["ledig","холостой"],["allein","один"],["einsam","одинокий"],["gemeinsam","общий"],["privat","частный"],["öffentlich","публичный"],["persönlich","личный"],["national","национальный"],["international","международный"],["fremd","чужой"],["einheimisch","местный"],["deutsch","немецкий"],["russisch","русский"],["englisch","английский"],["europäisch","европейский"],["rot","красный"],["blau","синий"],["grün","зелёный"],["gelb","жёлтый"],["schwarz","чёрный"],["weiß","белый"],["grau","серый"],["braun","коричневый"],["orange","оранжевый"],["rosa","розовый"],["lila","фиолетовый"],["bunt","разноцветный"],["golden","золотой"],["silbern","серебряный"],["süß","сладкий"],["sauer","кислый"],["bitter","горький"],["salzig","солёный"],["lecker","вкусный"],["fett","жирный"],["mager","нежирный"],["roh","сырой"],["gekocht","варёный"],["gebraten","жареный"],["ungesund","вредный"],["elektrisch","электрический"],["digital","цифровой"],["technisch","технический"],["praktisch","практичный"],["bequem","удобный"],["unbequem","неудобный"],["gemütlich","уютный"],["elegant","элегантный"],["sportlich","спортивный"],["zufrieden","довольный"],["unzufrieden","недовольный"],["unsicher","неуверенный"],["stolz","гордый"],["eifersüchtig","ревнивый"],["neugierig","любопытный"],["verliebt","влюблённый"],["überrascht","удивлённый"],["enttäuscht","разочарованный"],["begeistert","восторженный"],["wütend","разъярённый"],["pünktlich","пунктуальный"],["genau","точный"],["ungefähr","приблизительный"],["deutlich","ясный"],["klar","ясный"],["unklar","неясный"],["bestimmt","определённый"],["sofortig","немедленный"],["vorsichtig","осторожный"],["sorgfältig","тщательный"],["vollständig","полный"],["wirklich","настоящий"],["echt","подлинный"],["natürlich","естественный"],["künstlich","искусственный"],["wertvoll","ценный"],["verboten","запрещённый"],["erlaubt","разрешённый"],["zuständig","компетентный"],["verantwortlich","ответственный"],["berufstätig","работающий"],["arbeitslos","безработный"],["selbstständig","самостоятельный"],["abhängig","зависимый"],["unabhängig","независимый"],["verrückt","сумасшедший"],["blind","слепой"],["taub","глухой"],["stumm","немой"],["nackt","голый"],["tot","мёртвый"],["lebendig","живой"],["wild","дикий"],["zahm","ручной"],["mehrere","несколько"],["viele","многие"],["wenige","немногие"],["alle","все"],["beide","оба"]]],["sonstiges","Наречия и служебные слова",[["ja","да"],["nein","нет"],["vielleicht","возможно"],["bitte","пожалуйста"],["danke","спасибо"],["leider","к сожалению"],["hoffentlich","надеюсь"],["wahrscheinlich","вероятно"],["eigentlich","собственно"],["sehr","очень"],["ziemlich","довольно"],["etwas","немного"],["wenig","мало"],["viel","много"],["mehr","больше"],["weniger","меньше"],["genug","достаточно"],["zu","слишком"],["fast","почти"],["nur","только"],["auch","тоже"],["noch","ещё"],["schon","уже"],["immer","всегда"],["oft","часто"],["manchmal","иногда"],["selten","редко"],["nie","никогда"],["meistens","в основном"],["sofort","немедленно"],["bald","скоро"],["jetzt","сейчас"],["nun","теперь"],["dann","потом"],["danach","после этого"],["vorher","раньше"],["später","позже"],["zuerst","сначала"],["zuletzt","в конце концов"],["endlich","наконец"],["plötzlich","внезапно"],["inzwischen","тем временем"],["wieder","снова"],["noch einmal","ещё раз"],["hier","здесь"],["dort","там"],["da","там, тут"],["oben","наверху"],["unten","внизу"],["vorne","впереди"],["hinten","сзади"],["links","слева"],["rechts","справа"],["geradeaus","прямо"],["draußen","снаружи"],["drinnen","внутри"],["überall","везде"],["nirgends","нигде"],["irgendwo","где-нибудь"],["weg","прочь"],["zurück","назад"],["weit","далеко"],["nah","близко"],["wo","где"],["wohin","куда"],["woher","откуда"],["wann","когда"],["wie","как"],["warum","почему"],["was","что"],["wer","кто"],["welcher","который"],["wie viel","сколько"],["und","и"],["oder","или"],["aber","но"],["denn","так как"],["weil","потому что"],["dass","что"],["wenn","если, когда"],["ob","ли"],["obwohl","хотя"],["damit","чтобы"],["während","в то время как"],["bevor","прежде чем"],["nachdem","после того как"],["deshalb","поэтому"],["trotzdem","всё же"],["außerdem","кроме того"],["sonst","иначе"],["also","итак"],["doch","всё-таки"],["mit","с"],["ohne","без"],["für","для"],["gegen","против"],["von","от, из"],["aus","из"],["bei","у, при"],["nach","после, в"],["in","в"],["an","на, у"],["auf","на"],["über","над, о"],["unter","под"],["vor","перед"],["hinter","за"],["neben","рядом с"],["zwischen","между"],["durch","через"],["um","вокруг"],["bis","до"],["seit","с (о времени)"],["ab","начиная с"],["statt","вместо"],["wegen","из-за"],["trotz","несмотря на"],["außer","кроме"],["entlang","вдоль"],["ich","я"],["du","ты"],["er","он"],["sie","она"],["es","оно"],["wir","мы"],["ihr","вы"],["mein","мой"],["dein","твой"],["unser","наш"],["euer","ваш"],["kein","никакой"],["jeder","каждый"],["man","кто-то, люди"],["jemand","кто-нибудь"],["niemand","никто"],["alles","всё"],["nichts","ничего"],["eins","один"],["zwei","два"],["drei","три"],["vier","четыре"],["fünf","пять"],["sechs","шесть"],["sieben","семь"],["acht","восемь"],["neun","девять"],["zehn","десять"],["elf","одиннадцать"],["zwölf","двенадцать"],["zwanzig","двадцать"],["dreißig","тридцать"],["vierzig","сорок"],["fünfzig","пятьдесят"],["hundert","сто"],["tausend","тысяча"],["die Million","миллион"],["zweite","второй"],["dritte","третий"]]]];
+const TOPICS={},WORDS={};
+WORDCATS.forEach(([k,l,w])=>{TOPICS[k]=l;WORDS[k]=w});
+const LV={defolt:[1],normal:[1,2],epik:[2,3],crit:[3],mega:[3]};
+const WSTORE={
+  get(){try{return JSON.parse(localStorage.getItem('tb_words_v1'))}catch(e){return null}},
+  set(v){try{localStorage.setItem('tb_words_v1',JSON.stringify(v))}catch(e){}},
+  clear(){try{localStorage.removeItem('tb_words_v1')}catch(e){}}
+};
+function applyCustom(list){
+  if(list&&list.length>=8){TOPICS.custom='Мои слова';WORDS.custom=list}
+  else{delete TOPICS.custom;delete WORDS.custom}
+}
+applyCustom(WSTORE.get());
+function getGroups(){
+  const g=[['Слова B1 (встроенные)',WORDCATS.map(c=>c[0])]];
+  if(WORDS.custom)g.push(['Мои слова ('+WORDS.custom.length+')',['custom']]);
+  return g;
+}
+const RAR={
+ defolt:{name:'Defolt',dmg:10,cd:0,time:15,rev:false,col:'#3b9bff',rgb:'59,155,255'},
+ normal:{name:'Normal',dmg:15,cd:1,time:15,rev:false,col:'#3dff7a',rgb:'61,255,122'},
+ epik:{name:'Epik',dmg:25,cd:2,time:12,rev:true,col:'#4f86ff',rgb:'79,134,255'},
+ crit:{name:'Crit',dmg:35,cd:3,time:10,rev:true,col:'#9a5cff',rgb:'154,92,255'},
+ mega:{name:'Mega Punch',dmg:50,cd:0,time:10,rev:true,col:'#c08cff',rgb:'192,140,255'}
+};
+const MAXCH=8;
+const TUNE={crit:{bonus:10},momentum:5,epikDrain:2,defoltCh:1,perfectBonus:3,shield:2,sudden:20};
+const LTITLES=[[30,'Deutschmeister'],[20,'Grammar Master'],[10,'Scholar'],[5,'Fighter'],[1,'Rookie']];
+const ltitle=lv=>LTITLES.find(x=>lv>=x[0])[1];
+const BOT=[{p:.45,name:'Новичок'},{p:.68,name:'Боец'},{p:.88,name:'Профессор'}];
+
+/* ================= PROFILE ================= */
+const store={
+  get(){try{return JSON.parse(localStorage.getItem('tb_profile_v1'))}catch(e){return null}},
+  set(v){try{localStorage.setItem('tb_profile_v1',JSON.stringify(v))}catch(e){}}
+};
+let profile=Object.assign({xp:0,games:0,wins:0,pool:[],stats:{},mistakes:[],bestCombo:0},store.get()||{});
+profile.stats=profile.stats||{};profile.wstats=profile.wstats||{};profile.mistakes=(profile.mistakes||[]).filter(x=>x&&WORDS[x.topic]);profile.pool=(profile.pool||[]).filter(x=>x&&WORDS[x.topic]);
+const wkeyOf=q=>String(q.wkey||(q.key||'').split(':')[1]||'').toLowerCase();
+function recStat(topic,ok,q){
+  const s=profile.stats[topic]||(profile.stats[topic]={c:0,w:0});ok?s.c++:s.w++;
+  const k=q&&wkeyOf(q);if(k){const w=profile.wstats[k]||(profile.wstats[k]={c:0,w:0});ok?w.c++:w.w++}
+}
+const acc=s=>s&&(s.c+s.w)?s.c/(s.c+s.w):null;
+const cfg={mode:'bot',bot:1,timer:true,sound:true,topics:getGroups().flatMap(g=>g[1])};
+const level=xp=>1+Math.floor(xp/250);
+
+/* ================= SOUND ================= */
+let AC=null;
+function tone(f,d,type,v,slide,delay){
+  if(!cfg.sound)return;
+  try{
+    AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+    const t=AC.currentTime+(delay||0),o=AC.createOscillator(),g=AC.createGain();
+    o.type=type||'square';o.frequency.setValueAtTime(f,t);
+    if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);
+    g.gain.setValueAtTime(v||.07,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02);
+  }catch(e){}
+}
+const sfx={
+  ok(){tone(660,.12,'triangle',.09);tone(990,.18,'triangle',.09,0,.1)},
+  bad(){tone(180,.3,'sawtooth',.08,70)},
+  hit(){tone(140,.22,'square',.12,40);tone(90,.2,'sawtooth',.1,40,.03)},
+  miss(){tone(500,.25,'sine',.07,1000)},
+  mega(){tone(120,.7,'sawtooth',.1,1100)},
+  win(){[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.1,0,i*.13))},
+  lose(){[392,330,262,196].forEach((f,i)=>tone(f,.3,'sawtooth',.07,0,i*.18))},
+  tick(){tone(900,.04,'square',.03)}
+};
+
+/* ================= SVG BUILDERS ================= */
+const starPts=(n,r1,r2)=>Array.from({length:n*2},(_,i)=>{const a=Math.PI*i/n-Math.PI/2,r=i%2?r1:r2;return(20+r*Math.cos(a)).toFixed(1)+','+(20+r*Math.sin(a)).toFixed(1)}).join(' ');
+function icon(rk){
+  const R=RAR[rk];let inner='';
+  if(rk==='defolt')inner='<circle cx="20" cy="20" r="8" fill="#2aa0ff"/><circle cx="17" cy="17" r="3" fill="#cfeaff"/>';
+  if(rk==='normal')inner='<path d="M20 7l11 4v9c0 7-5 11-11 13C14 31 9 27 9 20v-9z" fill="#2fdc62" stroke="#c4ffd6" stroke-width="1.5"/>';
+  if(rk==='epik')inner=`<polygon points="${starPts(8,6,13)}" fill="#3a6dff" stroke="#c0d2ff" stroke-width="1.2"/>`;
+  if(rk==='crit')inner=`<polygon points="${starPts(8,5,14)}" fill="#ff2e4d" stroke="#ffc0c9" stroke-width="1.2"/>`;
+  if(rk==='mega')inner='<path d="M23 5L12 22h7l-2 13 12-18h-8z" fill="#ffd23d" stroke="#fff3b0" stroke-width="1.2"/>';
+  return `<svg viewBox="0 0 40 40" width="100%" height="100%"><circle cx="20" cy="20" r="18" fill="#0b0d30" stroke="${R.col}" stroke-width="2"/>${inner}</svg>`;
+}
+function fighterSVG(col,hair){
+  const dk='#0a0a1c',skin='#dedbff';
+  const limb=(pts,w=11)=>`<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="${w+7}" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/><polyline points="${pts}" fill="none" stroke="${dk}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const glove=(x,y,r)=>`<g transform="translate(${x} ${y}) rotate(${r})"><ellipse rx="23" ry="19" fill="#ecebff" stroke="${col}" stroke-width="3"/><ellipse cx="-3" cy="-13" rx="11" ry="8" fill="#ecebff" stroke="${col}" stroke-width="3"/><rect x="-30" y="-9" width="11" height="18" rx="3" fill="${col}"/></g>`;
+  const shoe=(x,y)=>`<g transform="translate(${x} ${y})"><path d="M-26 6 q0-20 18-20 h14 q14 0 24 11 q6 9 -4 14 h-52z" fill="#ecebff" stroke="${dk}" stroke-width="3"/><rect x="-27" y="12" width="56" height="7" rx="3" fill="${col}"/></g>`;
+  let hairSvg='';
+  if(hair==='spiky')hairSvg=`<polygon points="86,64 80,36 102,48 104,14 122,40 140,8 146,42 168,26 162,56 166,66 152,50 124,42 98,50" fill="${dk}" stroke="${col}" stroke-width="3" stroke-linejoin="round"/>`;
+  else{
+    for(let i=0;i<7;i++){const a=Math.PI*(1.08+i*.14),cx=124+36*Math.cos(a),cy=68+36*Math.sin(a);hairSvg+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="14" fill="${dk}" stroke="${col}" stroke-width="2.5"/>`}
+    hairSvg+=`<circle cx="124" cy="46" r="15" fill="${dk}"/>`;
+  }
+  return `<svg viewBox="0 0 260 360" xmlns="http://www.w3.org/2000/svg">
+   ${limb('122,205 88,262 66,316')}${limb('128,205 172,262 194,316')}${shoe(58,322)}${shoe(204,322)}
+   ${limb('120,132 98,188 150,214')}${glove(162,216,-18)}
+   ${limb('122,110 124,208',16)}
+   <polygon points="112,108 123,140 134,108" fill="#ecebff"/>
+   ${limb('126,130 170,160 206,134')}${glove(216,126,-28)}
+   <circle cx="124" cy="68" r="37" fill="${skin}" stroke="${col}" stroke-width="5"/>
+   ${hairSvg}
+   <rect x="113" y="56" width="7" height="23" rx="3.5" fill="#12122e"/><rect x="136" y="56" width="7" height="23" rx="3.5" fill="#12122e"/>
+  </svg>`;
+}
+(function initStatic(){
+  // skyline
+  const g=$('#skyline');let x=-10,d='',win='';
+  while(x<1620){
+    const w=44+Math.random()*90,h=50+Math.random()*150,top=470-h;
+    d+=`M${x.toFixed(0)} 480V${top.toFixed(0)}h${w.toFixed(0)}V480z`;
+    for(let wy=top+12;wy<455;wy+=17)for(let wx=x+7;wx<x+w-9;wx+=13)if(Math.random()<.16)win+=`<rect x="${wx.toFixed(0)}" y="${wy.toFixed(0)}" width="4" height="7"/>`;
+    x+=w+Math.random()*8;
+  }
+  g.innerHTML=`<path d="${d}" fill="#120f45"/><g fill="#ffb36b" opacity=".65">${win}</g>`;
+  // orb star
+  const pts=Array.from({length:24},(_,i)=>{const a=Math.PI*i/12,r=i%2?34:48;return(50+r*Math.cos(a)).toFixed(1)+','+(50+r*Math.sin(a)).toFixed(1)}).join(' ');
+  $('#orbstar').setAttribute('points',pts);
+  // fighters
+  $('#f0').innerHTML=fighterSVG('#4aa3ff','spiky');
+  $('#f1').innerHTML=fighterSVG('#ff4aa8','curly');
+  $('#mfl').innerHTML=fighterSVG('#4aa3ff','spiky').replace('<svg','<svg class="mfs"');
+  $('#mfr').innerHTML=fighterSVG('#ff4aa8','curly').replace('<svg','<svg class="mfs"');
+  $('#mfl').classList.add('fw','l');$('#mfr').classList.add('fw','r');
+  Object.assign($('#mfl').style,{height:'62%',maxHeight:'520px'});Object.assign($('#mfr').style,{height:'62%',maxHeight:'520px'});
+  $('#mfl').style.left='2%';$('#mfr').style.right='2%';
+  for(const i of [0,1]){
+    const b=$('#bar'+i);b.innerHTML=Array.from({length:10},()=>'<div class="seg"><i></i></div>').join('');
+  }
+  $('#mtrack').insertAdjacentHTML('beforeend',Array.from({length:MAXCH},()=>'<div class="mc"></div>').join(''));
+})();
+
+/* ================= MENU ================= */
+function renderMenu(){
+  const lv=level(profile.xp);
+  $('#lvlTxt').textContent='LEVEL '+lv+' · '+ltitle(lv);
+  $('#xpFill').style.width=((profile.xp%250)/250*100)+'%';
+  $('#xpTxt').textContent=profile.xp+' XP';
+  const rows=Object.keys(TOPICS).filter(k=>profile.stats[k]&&(profile.stats[k].c+profile.stats[k].w)>0).map(k=>[k,acc(profile.stats[k]),profile.stats[k].c+profile.stats[k].w]).sort((a,b)=>a[1]-b[1]);
+  $('#mast').innerHTML=rows.length?rows.map(([k,a,n])=>`<div class="tr"><span>${TOPICS[k]}</span><span class="tb"><i class="${a<.6?'w':a<.8?'m':''}" style="width:${Math.round(a*100)}%"></i></span><span>${Math.round(a*100)}% <small style="opacity:.5">(${n})</small></span></div>`).join(''):'<div style="opacity:.6">Пока нет данных — сыграй бой.</div>';
+  $('#chips').innerHTML=getGroups().map(([t,ks])=>`<div class="glab">${t}</div>`+ks.map(k=>`<button class="chip${cfg.topics.includes(k)?' on':''}" data-k="${k}">${TOPICS[k]}</button>`).join('')).join('');
+}
+$('#chips').addEventListener('click',e=>{
+  const b=e.target.closest('.chip');if(!b)return;
+  const k=b.dataset.k,i=cfg.topics.indexOf(k);
+  if(i>=0){if(cfg.topics.length<=4)return;cfg.topics.splice(i,1)}else cfg.topics.push(k);
+  renderMenu();
+});
+function segBind(id,key,after){
+  $(id).addEventListener('click',e=>{
+    const b=e.target.closest('.opt');if(!b)return;
+    $$('.opt',$(id)).forEach(o=>o.classList.toggle('on',o===b));
+    cfg[key]=key==='bot'?+b.dataset.v:b.dataset.v;after&&after();
+  });
+}
+segBind('#modeSeg','mode',()=>{$('#botRow').style.display=cfg.mode==='bot'?'':'none';$('#n1').value=cfg.mode==='bot'?'Klark':$('#n1').value});
+segBind('#botSeg','bot');
+$('#tTimer').onchange=e=>cfg.timer=e.target.checked;
+$('#tSound').onchange=e=>cfg.sound=e.target.checked;
+$('#go').onclick=()=>{tone(440,.1,'square',.06);startBattle()};
+
+function show(id){$$('.screen').forEach(s=>s.classList.toggle('active',s.id===id))}
+
+
+const SEEN=new Set();
+
+/* ================= QUESTIONS ================= */
+function makeQ(topic,rk0){
+  const rk=(S&&S.sudden&&rk0!=='defolt')?'normal':rk0;
+  const R=RAR[rk],list=WORDS[topic],n=list.length,lv=LV[rk];
+  const lo=Math.floor((Math.min(...lv)-1)*n/3),hi=Math.max(lo+1,Math.floor(Math.max(...lv)*n/3));
+  let idx=-1;
+  for(let k=0;k<30;k++){const c=lo+rnd(hi-lo);if(!SEEN.has(topic+':'+c)){idx=c;break}}
+  if(idx<0){for(let c=lo;c<hi;c++)SEEN.delete(topic+':'+c);idx=lo+rnd(hi-lo)}
+  SEEN.add(topic+':'+idx);
+  const w=list[idx],rev=R.rev,i=rev?1:0,j=rev?0:1;
+  const toks=s=>s.toLowerCase().split(/[,;\s()]+/).filter(x=>x.length>2);
+  const wt=toks(w[1]);
+  const ok=o=>o!==w&&o[0].toLowerCase()!==w[0].toLowerCase()&&o[1].toLowerCase()!==w[1].toLowerCase()&&!toks(o[1]).some(x=>wt.includes(x));
+  const opts=new Set([w[j]]);
+  let guard=0;
+  while(opts.size<4&&guard++<400){const o=list[rnd(n)];if(ok(o))opts.add(o[j])}
+  if(opts.size<4){ // на случай очень короткого списка: добираем из встроенных слов
+    const all=WORDCATS.flatMap(c=>c[2]);
+    while(opts.size<4&&guard++<2000){const o=all[rnd(all.length)];if(ok(o))opts.add(o[j])}
+  }
+  return {label:rev?'Как по-немецки?':'Что значит?',prompt:w[i],answer:w[j],options:shuffle([...opts]),key:topic+':'+w[0]+':'+(rev?'r':'f'),exp:w[0]+' — '+w[1],topic,rk:rk0,wkey:w[0].toLowerCase()};
+}
+
+/* ================= STATE ================= */
+let S=null;
+const newP=(idx,name,bot)=>({idx,name,bot,hp:100,combo:0,best:0,charge:0,cool:{normal:0,epik:0,crit:0},correct:0,wrong:0,dealt:0,xp:0,pool:[],lastRev:-9,mistakes:[],shield:TUNE.shield,mom:0,bonus:0,perfect:0,revWon:0,megas:0,tstat:{}});
+const calcDmg=(A,rk)=>Math.round(RAR[rk].dmg*(1+Math.min(A.combo,5)*.1))+(rk==='normal'&&A.mom>=2?TUNE.momentum:0)+(A.bonus||0);
+
+function startBattle(){
+  const n0=($('#n0').value.trim()||'Robin'),n1=($('#n1').value.trim()||'Klark');
+  SEEN.clear();
+  S={p:[newP(0,n0,false),newP(1,n1,cfg.mode==='bot')],turn:0,turnNo:0,busy:true,over:false,cards:[],sudden:false};
+  $('#battle').classList.remove('training');
+  if(cfg.mode==='bot')S.p[0].pool=(profile.pool||[]).slice();
+  [$('#f0'),$('#f1')].forEach(el=>{try{el.getAnimations().forEach(a=>a.cancel())}catch(e){}});
+  $('#nm0').textContent=n0;$('#nm1').textContent=n1;
+  $('#fx').innerHTML='';
+  show('battle');renderHUD();startTurn();
+}
+
+function renderHUD(){
+  S.p.forEach(p=>{
+    const hp=Math.max(0,p.hp);
+    $('#hpt'+p.idx).textContent=hp+' HP';
+    $$('#bar'+p.idx+' .seg i').forEach((el,k)=>{el.style.width=Math.max(0,Math.min(1,(hp-k*10)/10))*100+'%'});
+    const cb=$('#cb'+p.idx);cb.textContent='COMBO ×'+p.combo+(p.combo?` · +${Math.min(p.combo,5)*10}%`:'');cb.classList.toggle('on',p.combo>=1);
+    $('#pp'+p.idx).textContent='⚡ '+p.charge+'/'+MAXCH+'  🛡'+p.shield;
+    $('#pb'+p.idx).classList.toggle('active',S.turn===p.idx&&!S.over);
+  });
+}
+function renderMega(){
+  const A=S.p[S.turn];
+  $('#mega').classList.toggle('p1',S.turn===1);
+  $$('#mtrack .mc').forEach((c,i)=>c.classList.toggle('on',i<A.charge));
+  const ready=A.charge>=MAXCH;
+  $('#orb').classList.toggle('ready',ready&&!A.bot&&!S.busy);
+  $('#mlabel').classList.toggle('ready',ready);
+  $('#mlabel').textContent=ready?'Mega Punch — готов!':'Mega Punch';
+  const w=$('#warn'),W=S.p.slice().sort((a,b)=>b.charge-a.charge)[0];
+  if(W.charge>=MAXCH){w.textContent='🔥 '+W.name+': MEGA READY';w.className='warnbar on gold'}
+  else if(W.charge>=6){w.textContent='⚠️ '+W.name+' ЗАРЯЖАЕТСЯ ('+W.charge+'/'+MAXCH+')';w.className='warnbar on'}
+  else w.className='warnbar';
+}
+function setStatus(t,col){const s=$('#status');s.textContent=t;s.style.setProperty('--sc',col||'#fff')}
+
+function startTurn(){
+  const A=S.p[S.turn];S.turnNo++;
+  if(!S.sudden&&S.p[0].hp<=TUNE.sudden&&S.p[1].hp<=TUNE.sudden){S.sudden=true;burst('SUDDEN DEATH','hit');screenFlash();shakeScreen(12)}
+  const col=S.turn===0?'#3b9bff':'#ff3d9a';
+  $('#cards').style.setProperty('--pc',col);
+  let topics=shuffle(cfg.topics).slice(0,4);
+  if(cfg.mode==='bot'&&S.turn===1){
+    const w=t=>{const a=acc(profile.stats[t]);const n=profile.stats[t]?profile.stats[t].c+profile.stats[t].w:0;return n<3||a==null?1.5:.6+(1-a)*3};
+    const bag=cfg.topics.slice(),out=[];
+    while(out.length<4&&bag.length){const ws=bag.map(w),tot=ws.reduce((a,b)=>a+b,0);let r=Math.random()*tot,i=0;while(i<bag.length-1&&(r-=ws[i])>0)i++;out.push(bag.splice(i,1)[0])}
+    topics=out;
+  }
+  S.cards=['epik','crit','normal','defolt'].map((rk,i)=>({rk,topic:topics[i]}));
+  S.busy=!!A.bot;
+  renderCards();renderHUD();renderMega();
+  if(A.bot){setStatus(A.name+' выбирает удар…',col);setTimeout(botTurn,1200)}
+  else setStatus((S.sudden?'☠ SUDDEN DEATH · ':'')+A.name+', выбери карту для атаки',col);
+}
+function renderCards(){
+  const A=S.p[S.turn];
+  $('#cards').innerHTML=S.cards.map((c,i)=>{
+    const R=RAR[c.rk],cd=c.rk==='defolt'?0:A.cool[c.rk],dmg=calcDmg(A,c.rk);
+    return `<button class="cw${cd?' cdw':''}${(S.busy||A.bot)&&!cd?' off':''}" data-i="${i}" style="--rc:${R.col};--rgb:${R.rgb}" ${cd?'aria-disabled="true"':''}>
+      <span class="card"><span class="ci">
+        <span class="ch"><span class="ico">${icon(c.rk)}</span><b>${R.name}</b></span>
+        <span class="topic" style="display:block">${TOPICS[c.topic]}<span class="d">−${dmg}</span></span>
+        <span class="slots"><i></i><i></i><i></i><i></i></span>
+        ${cd?`<span class="cdn">${cd}</span>`:''}
+      </span></span></button>`;
+  }).join('');
+}
+$('#cards').addEventListener('click',e=>{
+  const b=e.target.closest('.cw');if(!b)return;
+  chooseCard(+b.dataset.i);
+});
+function chooseCard(i){
+  if(!S||S.busy||S.over)return;
+  const A=S.p[S.turn],c=S.cards[i];if(!c)return;
+  if(A.bot)return;
+  if(c.rk!=='defolt'&&A.cool[c.rk]>0){sfx.bad();return}
+  playCard(c);
+}
+$('#orb').onclick=useMega;
+function useMega(){
+  if(!S||S.busy||S.over)return;
+  const A=S.p[S.turn];
+  if(A.bot||A.charge<MAXCH)return;
+  playCard({rk:'mega',topic:pick(cfg.topics)});
+}
+function botTurn(){
+  const A=S.p[S.turn],H=S.p[1-S.turn];
+  if(S.over)return;
+  const lvl=cfg.bot;
+  if(A.charge>=MAXCH&&Math.random()<[.35,.7,.95][lvl]){playCard({rk:'mega',topic:pick(cfg.topics)});return}
+  const avail=S.cards.map((c,i)=>({c,i})).filter(o=>o.c.rk==='defolt'||A.cool[o.c.rk]===0);
+  let ch=null;
+  if(lvl>=1){ // Боец и выше: добивает, если хватает урона
+    const fin=avail.filter(o=>calcDmg(A,o.c.rk)>=H.hp).sort((a,b)=>RAR[a.c.rk].dmg-RAR[b.c.rk].dmg)[0];
+    if(fin&&Math.random()<.85)ch=fin;
+  }
+  if(!ch&&lvl===2){ // Профессор: бьёт по слабой теме игрока, не рискует Crit при низком HP
+    const wk=avail.map(o=>({o,a:acc(profile.stats[o.c.topic])})).filter(x=>x.a!=null).sort((x,y)=>x.a-y.a)[0];
+    if(wk&&wk.a<.7&&Math.random()<.6)ch=wk.o;
+  }
+  if(!ch){
+    const w=[{defolt:4,normal:3,epik:1,crit:1},{defolt:1,normal:2,epik:3,crit:3},{defolt:1,normal:2,epik:3,crit:A.hp<35?1:4}][lvl];
+    const bag=[];avail.forEach(o=>{for(let k=0;k<w[o.c.rk];k++)bag.push(o)});
+    ch=pick(bag);
+  }
+  const el=$$('#cards .cw')[ch.i];el&&el.classList.add('sel');
+  setTimeout(()=>playCard(ch.c),650);
+}
+
+/* ================= QUESTION OVERLAY ================= */
+function askQ(q,ctx){
+  return new Promise(resolve=>{
+    const R=RAR[ctx.rk],D=ctx.def;
+    const qw=$('#qwrap');qw.style.setProperty('--rc',R.col);qw.style.setProperty('--rgb',R.rgb);
+    qw.onclick=null;S.skip=null;
+    $('#qico').innerHTML=icon(ctx.rk);
+    $('#qrar').textContent=R.name;
+    $('#qtopic').textContent=TOPICS[q.topic];
+    $('#qdmg').textContent=ctx.training?(ctx.prog||''):'−'+ctx.dmg+(ctx.revenge?' (×1.5 при ошибке)':'')+(ctx.rk==='crit'?` (+${TUNE.crit.bonus} при ошибке)`:'')+(S&&S.sudden?' ☠':'');
+    $('#qexit').style.display=ctx.training?'':'none';
+    $('#qwho').textContent=ctx.training?(ctx.title||'Тренировка'):D.bot?`${D.name} отвечает…`:`${D.name}, защищайся!`;
+    $('#qrev').classList.toggle('on',!!ctx.revenge);
+    $('#qlabel').textContent=q.label;
+    const pr=$('#qprompt');pr.textContent=q.prompt;
+    pr.className='qprompt'+(q.prompt.length>46?' xl':q.prompt.length>16?' lg':'');
+    $('#qexp').textContent='';$('#qskip').style.visibility='hidden';
+    $('#qres').textContent='';$('#qres').className='qres';
+    const tb=$('#tbar'),tf=$('#tfill');
+    const useTimer=cfg.timer&&!D.bot&&!ctx.training;
+    tb.classList.toggle('hide',!useTimer);tf.style.width='100%';
+    const ans=$('#ans');
+    ans.className='ans'+(q.options.some(o=>o.length>22)?' wide':'');
+    ans.innerHTML=q.options.map((o,i)=>`<button class="a" data-v="${esc(o)}"><span class="k">${i+1}</span>${esc(o)}</button>`).join('');
+    const sb=$('#shbtn');
+    sb.className='shbtn';sb.disabled=false;
+    const canShield=!ctx.training&&!D.bot&&D.shield>0;
+    if(canShield){sb.classList.add('show');sb.textContent='🛡 Щит ('+D.shield+') — S';
+      sb.onclick=()=>{if(done||ctx.shielded||D.shield<=0)return;D.shield--;ctx.shielded=true;sb.classList.add('used');sb.disabled=true;sb.textContent='🛡 Щит активен';sfx.miss();renderHUD()}}
+    else sb.onclick=null;
+    if(!ctx.training&&D.bot&&D.shield>0&&cfg.bot>=1&&['crit','mega','epik'].includes(ctx.rk)&&Math.random()<.5){D.shield--;ctx.shielded=true;renderHUD()}
+    $('#qov').classList.add('on');
+    const t0=performance.now(),limit=R.time*1000;
+    let done=false,tid=null;S.force=()=>finish(null,true);
+    function finish(choice,timeout){
+      if(done)return;done=true;clearInterval(tid);
+      const ok=choice===q.answer,secs=(performance.now()-t0)/1000;
+      $$('.a',ans).forEach(b=>{
+        b.disabled=true;
+        if(b.dataset.v===q.answer)b.classList.add('good');
+        else if(b.dataset.v===choice)b.classList.add('bad');
+      });
+      const r=$('#qres');
+      if(ok){r.className='qres ok';r.textContent=ctx.training?'✔ CORRECT':'✔ CORRECT — блок!';sfx.ok()}
+      else{r.className='qres no';r.textContent=(timeout?'⏱ TIME OUT':'✘ WRONG')+(ctx.training?'':ctx.shielded?' — 🛡 ЩИТ ПОГЛОТИЛ УДАР!':' — удар попадает!');sfx.bad()}
+      $('#shbtn').disabled=true;
+      const parts=[];
+      if(q.prompt.includes('___'))parts.push(q.prompt.replace('___',q.answer));
+      if(q.exp)parts.push(q.exp);
+      if(!ok&&!timeout&&choice)parts.push('Ты выбрал: '+choice);
+      $('#qexp').textContent=parts.join('\n');
+      const wait=ok?(parts.length?2600:1500):(parts.length?4600:2000);
+      let closed=false;
+      const result={ok,choice,timeout:!!timeout,fast:ok&&!D.bot&&!ctx.training&&secs<3,shielded:!!ctx.shielded&&!ok};
+      const close=()=>{if(closed)return;closed=true;clearTimeout(tm);qw.onclick=null;S.skip=null;S.force=null;$('#shbtn').className='shbtn';$('#qov').classList.remove('on');resolve(result)};
+      const tm=setTimeout(close,wait);
+      $('#qskip').style.visibility='visible';
+      setTimeout(()=>{if(!closed){qw.onclick=close;S.skip=close}},550);
+    }
+    ans.onclick=e=>{const b=e.target.closest('.a');if(!b||D.bot||b.disabled)return;finish(b.dataset.v)};
+    if(useTimer){
+      tid=setInterval(()=>{
+        const left=Math.max(0,1-(performance.now()-t0)/limit);
+        tf.style.width=left*100+'%';
+        if(left<=0)finish(null,true);
+      },60);
+    }
+    if(D.bot){
+      let p=BOT[cfg.bot].p;if(R.rev)p-=.08;
+      setTimeout(()=>{
+        const ok=Math.random()<p;
+        finish(ok?q.answer:pick(q.options.filter(o=>o!==q.answer)));
+      },1500+rnd(1200));
+    }
+  });
+}
+
+/* ================= FX ================= */
+const wa=(el,kf,o)=>{try{return el.animate(kf,o).finished.catch(()=>{})}catch(e){return Promise.resolve()}};
+function burst(txt,cls){const d=document.createElement('div');d.className='burst '+(cls||'');d.textContent=txt;$('#fx').appendChild(d);setTimeout(()=>d.remove(),1050)}
+function floatAt(el,txt,color,fs,dy){
+  const r=el.getBoundingClientRect(),b=$('#battle').getBoundingClientRect();
+  const d=document.createElement('div');d.className='float';d.textContent=txt;
+  d.style.left=(r.left-b.left+r.width/2)+'px';d.style.top=(r.top-b.top+r.height*(dy==null?.2:dy))+'px';
+  d.style.setProperty('--c',color||'#fff');if(fs)d.style.setProperty('--fs',fs);
+  $('#fx').appendChild(d);setTimeout(()=>d.remove(),1250);
+}
+function screenFlash(){const f=document.createElement('div');f.className='flash';$('#fx').appendChild(f);setTimeout(()=>f.remove(),520)}
+function shakeScreen(mag){
+  const m=mag||8;
+  wa($('#battle'),[{transform:'translate(0,0)'},{transform:`translate(${-m}px,${m/2}px)`},{transform:`translate(${m}px,${-m/2}px)`},{transform:`translate(${-m/2}px,${m/3}px)`},{transform:'translate(0,0)'}],{duration:380});
+}
+
+async function strike(A,D,ok,dmg,rk,onImpact,shielded){
+  const fa=$('#f'+A.idx),fd=$('#f'+D.idx),dir=A.idx===0?1:-1;
+  const ra=fa.getBoundingClientRect(),rd=fd.getBoundingClientRect();
+  const gap=Math.abs(rd.left-ra.left)-ra.width;
+  const L=Math.max(30,gap+ra.width*.22);
+  const mega=rk==='mega';
+  let anim,impactAt;
+  if(mega){
+    burst('MEGA PUNCH!','mega');screenFlash();sfx.mega();
+    impactAt=620;
+    anim=wa(fa,[{transform:'translateX(0) scale(1)'},{transform:`translateX(${-dir*40}px) scale(1.1)`,offset:.3},{transform:`translateX(${dir*L}px) scale(1.12)`,offset:.55},{transform:`translateX(${dir*L}px) scale(1.12)`,offset:.72},{transform:'translateX(0) scale(1)'}],{duration:1150,easing:'ease-in-out'});
+  }else{
+    impactAt=250;
+    anim=wa(fa,[{transform:'translateX(0) scale(1)'},{transform:`translateX(${dir*L}px) scale(1.07)`,offset:.4},{transform:`translateX(${dir*L}px) scale(1.07)`,offset:.55},{transform:'translateX(0) scale(1)'}],{duration:620,easing:'ease-in-out'});
+  }
+  await sleep(impactAt);
+  onImpact();
+  const svg=fd.querySelector('svg');
+  if(ok){
+    sfx.miss();
+    burst('MISS','miss');
+    floatAt(fd,'BLOCK!','#3dff7a',null,.1);
+    wa(fd,[{transform:'translateX(0) skewX(0)',opacity:1},{transform:`translateX(${dir*55}px) skewX(${-dir*12}deg)`,opacity:.55,offset:.4},{transform:'translateX(0) skewX(0)',opacity:1}],{duration:560,easing:'ease-out'});
+  }else if(shielded){
+    sfx.miss();burst('SHIELD','miss');
+    floatAt(fd,'🛡 SHIELD BLOCKED','#3b9bff',null,.1);
+    wa(fd,[{transform:'translateX(0)'},{transform:`translateX(${dir*30}px)`,offset:.4},{transform:'translateX(0)'}],{duration:480,easing:'ease-out'});
+  }else{
+    sfx.hit();shakeScreen(mega?18:9);
+    burst(mega?'KO PUNCH!':'HIT!','hit');
+    floatAt(fd,'−'+dmg,'#ff3355',null,.05);
+    wa(fd,[{transform:'translateX(0) rotate(0)'},{transform:`translateX(${dir*46}px) rotate(${dir*9}deg)`,offset:.25},{transform:`translateX(${dir*20}px) rotate(${dir*3}deg)`,offset:.6},{transform:'translateX(0) rotate(0)'}],{duration:520,easing:'ease-out'});
+    if(svg)wa(svg,[{filter:'brightness(4) saturate(0)'},{filter:'brightness(1.6)',offset:.4},{}],{duration:420});
+  }
+  await anim;
+}
+
+/* ================= TURN FLOW ================= */
+async function countdown(){
+  const c=$('#cnt');c.classList.add('on');
+  for(const n of ['3','2','1']){c.textContent=n;sfx.tick();tone(300+Number(n)*-60+240,.12,'square',.06);await sleep(520)}
+  c.classList.remove('on');
+}
+function noteMistake(D,q){
+  if(cfg.mode!=='bot'||D.bot||D.idx!==0)return;
+  if(!profile.mistakes.some(x=>x.key===q.key)){profile.mistakes.push({topic:q.topic,label:q.label,prompt:q.prompt,answer:q.answer,options:q.options.slice(),key:q.key,exp:q.exp||''});if(profile.mistakes.length>40)profile.mistakes.shift()}
+}
+async function playCard(card){
+  if(S.busy&&!S.p[S.turn].bot)return;
+  S.busy=true;renderCards();renderMega();
+  const A=S.p[S.turn],D=S.p[1-S.turn],rk=card.rk;
+  const col=S.turn===0?'#3b9bff':'#ff3d9a';
+  setStatus(`${A.name}: ${RAR[rk].name} — ${TOPICS[card.topic]}!`,col);
+  if(rk==='mega'){A.megas++;await countdown()}
+  else if(rk==='crit'||rk==='epik'){burst('⚠ '+RAR[rk].name.toUpperCase(),'tele');tone(260,.25,'sawtooth',.06,520);await sleep(650)}
+  if(S.over)return;
+  const dmgBase=calcDmg(A,rk);
+  let q,revenge=false;
+  if(!D.bot&&D.pool.length&&S.turnNo-D.lastRev>=3&&Math.random()<.4){
+    q=Object.assign({},D.pool.shift());q.options=shuffle(q.options);revenge=true;D.lastRev=S.turnNo;
+  }else q=makeQ(card.topic,rk);
+  await sleep(350);
+  const ctx={att:A,def:D,rk,dmg:dmgBase,revenge};
+  const res=await askQ(q,ctx);
+  let dmg=dmgBase;
+  if(!res.ok){
+    if(rk==='crit')dmg+=TUNE.crit.bonus;
+    if(revenge)dmg=Math.round(dmg*1.5);
+    if(S.sudden)dmg=Math.max(dmg,D.hp);
+    if(res.shielded)dmg=0;
+  }
+  let ko=false;
+  await strike(A,D,res.ok,dmg,rk,()=>{
+    const humanStat=cfg.mode==='bot'&&!D.bot&&D.idx===0;
+    const ts=D.tstat[q.topic]||(D.tstat[q.topic]={c:0,w:0});res.ok?ts.c++:ts.w++;
+    if(humanStat)recStat(q.topic,res.ok,q);
+    if(res.ok){
+      D.correct++;D.combo++;D.best=Math.max(D.best,D.combo);
+      let gain=1+(rk==='defolt'?TUNE.defoltCh:0);
+      if(res.fast){gain+=1;D.perfect++;D.bonus=TUNE.perfectBonus;floatAt($('#f'+D.idx),'⚡ PERFECT! +1⚡','#ffd23d','clamp(22px,3.4vw,36px)',.45)}
+      D.charge=Math.min(MAXCH,D.charge+gain);
+      D.xp+=10+(res.fast?5:0)+(revenge?15:0)+Math.min(D.combo,5);
+      if(revenge){D.revWon++;floatAt($('#pb'+D.idx),'REVENGE GEWONNEN!','#3dff7a','clamp(20px,3vw,30px)',.9);profile.mistakes=profile.mistakes.filter(x=>x.key!==q.key)}
+      if(D.combo===3||D.combo===8)floatAt($('#pb'+D.idx),'COMBO ×'+D.combo,'#ffd23d','clamp(22px,3.4vw,34px)',.9);
+      else if(D.combo===5)floatAt($('#pb'+D.idx),'🔥 MAX COMBO','#ffd23d','clamp(22px,3.4vw,34px)',.9);
+      else if(D.combo>5)floatAt($('#pb'+D.idx),'🔥 ON FIRE!','#ff8a00','clamp(20px,3vw,30px)',.9);
+      if(rk==='crit'&&(A.combo>0||A.charge>0)){
+        A.combo=Math.max(0,A.combo-1);A.charge=Math.max(0,A.charge-1);
+        floatAt($('#pb'+A.idx),'💢 BACKFIRE −1 Combo −1⚡','#ff8a00','clamp(18px,2.6vw,26px)',.9);
+      }
+      if(rk==='normal')A.mom=0;
+    }else{
+      const had=D.combo;
+      D.wrong++;D.combo=0;D.hp=Math.max(0,D.hp-dmg);A.dealt+=dmg;A.xp+=res.shielded?2:5;
+      if(had>=2)floatAt($('#pb'+D.idx),had>=3?'💔 COMBO BROKEN · '+had+' HIT LOST':'COMBO BROKEN','#ff3355','clamp(20px,3vw,30px)',.9);
+      D.mistakes.push({topic:q.topic,prompt:q.prompt,answer:q.answer,picked:res.timeout?'—':res.choice,label:q.label,exp:q.exp||''});
+      if(!D.pool.some(x=>x.key===q.key)&&!D.bot)D.pool.push(q);
+      noteMistake(D,q);
+      if(!res.shielded){
+        if(rk==='epik'&&D.charge>0){D.charge=Math.max(0,D.charge-TUNE.epikDrain);floatAt($('#pb'+D.idx),'💥 BREAK −'+TUNE.epikDrain+'⚡','#9a5cff','clamp(20px,3vw,30px)',.7)}
+        if(rk==='crit')burst('CRITICAL HIT','gold');
+        if(rk==='normal'){
+          if(A.mom>=2){A.mom=0}else{A.mom++;if(A.mom===2)floatAt($('#pb'+A.idx),'MOMENTUM ×2 · след. Normal +'+TUNE.momentum,'#3dff7a','clamp(18px,2.6vw,26px)',.9)}
+        }
+      }else if(rk==='normal')A.mom=0;
+      if(D.hp<=0)ko=true;
+    }
+    if(rk!=='normal')A.mom=0;
+    A.bonus=0;
+    if(rk==='mega')A.charge=0;else if(rk!=='defolt')A.cool[rk]=RAR[rk].cd;
+    renderHUD();renderMega();
+  },res.shielded);
+  if(ko){
+    S.over=true;renderHUD();
+    const fd=$('#f'+D.idx),dir=A.idx===0?1:-1;
+    burst(rk==='mega'?'MEGA FINISH!':rk==='crit'?'CRIT FINISH!':'K.O.!','ko');sfx.hit();shakeScreen(16);
+    wa(fd,[{transform:'translateX(0) rotate(0)',opacity:1},{transform:`translateX(${dir*80}px) translateY(60px) rotate(${dir*82}deg)`,opacity:.85}],{duration:900,easing:'ease-in',fill:'forwards'});
+    wa($('#f'+A.idx),[{transform:'translateY(0)'},{transform:'translateY(-40px)'},{transform:'translateY(0)'},{transform:'translateY(-30px)'},{transform:'translateY(0)'}],{duration:1200});
+    await sleep(2000);
+    showResult(A,D);
+    return;
+  }
+  // end of turn: tick cooldowns for unused kinds
+  for(const k of ['normal','epik','crit'])if(k!==rk&&A.cool[k]>0)A.cool[k]--;
+  await sleep(500);
+  S.turn=1-S.turn;
+  startTurn();
+}
+
+/* ================= RESULT ================= */
+function topicBars(tstat){
+  const rows=Object.entries(tstat).map(([k,s])=>[k,s.c/(s.c+s.w),s.c+s.w]).sort((a,b)=>a[1]-b[1]);
+  return rows.map(([k,a,n])=>`<div class="tr"><span>${TOPICS[k]||k}</span><span class="tb"><i class="${a<.5?'w':a<.8?'m':''}" style="width:${Math.round(a*100)}%"></i></span><span>${Math.round(a*100)}%${a<.5&&n>=2?' ← слабо':''}</span></div>`).join('');
+}
+function showResult(winner,loser){
+  const humans=S.p.filter(p=>!p.bot);
+  const humanWon=!winner.bot;
+  if(cfg.mode==='bot'){
+    const p0=S.p[0];
+    if(winner===p0){p0.xp+=100;if(p0.wrong===0)p0.xp+=100}
+    profile.pool=p0.pool.slice(-30);
+  }else{
+    winner.xp+=100;if(winner.wrong===0)winner.xp+=100;
+  }
+  const gained=humans.reduce((s,p)=>s+p.xp,0);
+  const before=level(profile.xp);
+  profile.xp+=gained;profile.games++;if(humanWon)profile.wins++;
+  profile.bestCombo=Math.max(profile.bestCombo||0,...humans.map(p=>p.best));
+  store.set(profile);
+  const after=level(profile.xp);
+  const pvp=cfg.mode==='pvp';
+  const win=pvp||winner===S.p[0];
+  const title=pvp?'VICTORY':(win?'VICTORY':'DEFEAT');
+  win?sfx.win():sfx.lose();
+  const col=p=>`<div class="pc${p.idx?' r':''}"><div class="box"><div class="in"><h3>${esc(p.name)}${p===winner?' 👑':''}</h3>
+    <div class="ln"><span>HP</span><span>${Math.max(0,p.hp)} / 100</span></div>
+    <div class="ln"><span>Верных ответов</span><span>${p.correct} из ${p.correct+p.wrong}</span></div>
+    <div class="ln"><span>Точность</span><span>${p.correct+p.wrong?Math.round(p.correct/(p.correct+p.wrong)*100):0}%</span></div>
+    <div class="ln"><span>Лучшее Combo</span><span>×${p.best}</span></div>
+    <div class="ln"><span>⚡ Perfect</span><span>${p.perfect}</span></div>
+    <div class="ln"><span>Revenge выиграно</span><span>${p.revWon}</span></div>
+    <div class="ln"><span>Mega Punch</span><span>${p.megas}</span></div>
+    <div class="ln"><span>Нанесено урона</span><span>${p.dealt}</span></div>
+    <div class="ln"><span>XP</span><span>+${p.xp}</span></div></div></div></div>`;
+  const mist=humans.flatMap(p=>p.mistakes.map(m=>({p,m})));
+  const mhtml=mist.length?`<div class="mist"><h4>Над чем поработать</h4>${mist.slice(0,12).map(({p,m})=>`<p>${pvp?esc(p.name)+': ':''}${esc(m.prompt)} → <em>${esc(m.answer)}</em> <span style="opacity:.6">(ты ответил: ${esc(m.picked)})</span>${m.exp?`<br><span style="opacity:.6;font-size:.85em">${esc(m.exp)}</span>`:''}</p>`).join('')}${mist.length>12?`<p style="opacity:.6">…и ещё ${mist.length-12}</p>`:''}
+    <p style="opacity:.75;margin-top:8px">${cfg.mode==='bot'?'Эти вопросы вернутся как Revenge-карты и ждут тебя в «Мои ошибки».':''}</p></div>`:`<div class="mist" style="border-color:var(--green)"><h4 style="color:var(--green)">Ни одной ошибки!</h4><p>Чистая игра.</p></div>`;
+  let weak=null,rhtml='';
+  if(!pvp&&Object.keys(S.p[0].tstat).length){
+    const rows=Object.entries(S.p[0].tstat).map(([k,s])=>({k,a:s.c/(s.c+s.w),n:s.c+s.w})).sort((x,y)=>x.a-y.a);
+    if(rows[0].a<.7&&rows[0].n>=2)weak=rows[0].k;
+    rhtml=`<div class="rep"><h4>Знания в этом бою</h4>${topicBars(S.p[0].tstat)}</div>`;
+  }
+  $('#resin').innerHTML=`
+    <h1 class="rtitle ${win?'win':'lose'}">${title}</h1>
+    <div class="rsub">${pvp?esc(winner.name)+' побеждает!':(win?esc(winner.name)+' побеждает '+esc(loser.name)+'!':esc(winner.name)+' оказался сильнее. Попробуй ещё.')}</div>
+    <div class="cols">${col(S.p[0])}${col(S.p[1])}</div>
+    ${rhtml}${mhtml}
+    <div class="xpl">+${gained} XP · LEVEL ${after} · ${ltitle(after)}${after>before?' — НОВЫЙ УРОВЕНЬ!':''}</div>
+    <div class="btns"><button class="big" id="again">REMATCH</button>
+    ${weak?`<button class="big alt" id="trw">🧠 Тренировать: ${TOPICS[weak]}</button>`:''}
+    ${cfg.mode==='bot'&&profile.mistakes.length?`<button class="big alt" id="trm">🔁 TRAIN MY MISTAKES (${profile.mistakes.length})</button>`:''}
+    <button class="big alt" id="tomenu">В меню</button></div>`;
+  $('#again').onclick=startBattle;
+  $('#tomenu').onclick=()=>{renderMenu();show('menu')};
+  if(weak)$('#trw').onclick=()=>trainTopics([weak],10);
+  if($('#trm'))$('#trm').onclick=trainMistakes;
+  show('result');
+}
+
+/* ================= TRAINING (без HP, без поражений) ================= */
+async function runTraining(items,title,after){
+  if(!items.length)return false;
+  const me=($('#n0').value.trim()||'Robin');
+  S={p:[{name:'',bot:true,idx:0,shield:0,hp:100},{name:me,bot:false,idx:1,shield:0,hp:100}],turn:0,over:false,busy:true,skip:null,force:null,training:true,sudden:false,cards:[]};
+  const $b=$('#battle');$b.classList.add('training');show('battle');$('#fx').innerHTML='';
+  const total=items.length,queue=items.slice(),stat={};let right=0,first=0,done=0,fixed=0;
+  while(queue.length&&!S.quit){
+    const q=queue.shift();q.options=shuffle(q.options);
+    const res=await askQ(q,{rk:'normal',def:S.p[1],dmg:0,revenge:false,training:true,title,prog:(done+1)+' / '+(total+(total-first>0?0:0))});
+    if(S.quit)break;
+    done++;
+    const s=stat[q.topic]||(stat[q.topic]={c:0,w:0});res.ok?s.c++:s.w++;
+    recStat(q.topic,res.ok,q);
+    if(res.ok){
+      right++;if(!q.retried)first++;
+      if(profile.mistakes.some(x=>x.key===q.key)){fixed++;profile.mistakes=profile.mistakes.filter(x=>x.key!==q.key)}
+      profile.pool=(profile.pool||[]).filter(x=>x.key!==q.key);
+    }else if(!q.retried){q.retried=true;queue.push(q)}
+  }
+  const quit=S.quit;S=null;$b.classList.remove('training');
+  const xp=right*5+fixed*15;profile.xp+=xp;store.set(profile);
+  if(quit){renderMenu();show('menu');return true}
+  sfx.win();
+  $('#resin').innerHTML=`
+    <h1 class="rtitle win">${fixed?'MISTAKE DEFEATED':'DONE'}</h1>
+    <div class="rsub">${esc(title)}</div>
+    <div class="rep"><h4>Итоги</h4>
+      <div class="stats"><span>С первого раза: <b>${first}/${total}</b></span><span>Исправлено ошибок: <b>${fixed}</b></span><span>XP: <b>+${xp}</b></span></div>
+      ${topicBars(stat)}</div>
+    <div class="btns"><button class="big" id="tagain">ЕЩЁ РАЗ</button><button class="big alt" id="tbat">В БОЙ</button><button class="big alt" id="tomenu">В меню</button></div>`;
+  $('#tagain').onclick=after||(()=>{renderMenu();show('menu')});
+  $('#tbat').onclick=startBattle;
+  $('#tomenu').onclick=()=>{renderMenu();show('menu')};
+  show('result');
+  return true;
+}
+function genQuestions(topics,n){
+  const out=[],kinds=['defolt','normal','epik'];
+  SEEN.clear();
+  for(let i=0;i<n;i++){const tp=topics[i%topics.length];out.push(makeQ(tp,kinds[i%3]))}
+  return shuffle(out);
+}
+function trainTopics(topics,n){
+  S=null;
+  const go=()=>{S=null;const items=genQuestions(shuffle(topics),n);runTraining(items,'Тренировка: '+topics.map(k=>TOPICS[k]).join(', '),go)};
+  go();
+}
+function trainWeak(){
+  const ranked=cfg.topics.map(k=>({k,a:acc(profile.stats[k]),n:profile.stats[k]?profile.stats[k].c+profile.stats[k].w:0}))
+    .filter(x=>x.n>=3&&x.a<.85).sort((x,y)=>x.a-y.a).slice(0,3).map(x=>x.k);
+  if(!ranked.length){$('#tmsg').textContent='Пока нет слабых тем: сыграй бой, и я найду, что подтянуть.';return}
+  trainTopics(ranked,10);
+}
+function trainMistakes(){
+  if(!profile.mistakes.length){$('#tmsg').textContent='Накопленных ошибок нет. Чистая работа!';return}
+  const go=()=>{if(!profile.mistakes.length){renderMenu();show('menu');return}
+    runTraining(shuffle(profile.mistakes.map(x=>Object.assign({},x))).slice(0,10),'Мои ошибки',go)};
+  go();
+}
+$('#trainWeak').onclick=trainWeak;
+$('#trainMist').onclick=trainMistakes;
+$('#qexit').onclick=()=>{if(!S)return;S.quit=true;if(S.force)S.force();setTimeout(()=>S&&S.skip&&S.skip(),650)};
+
+/* ================= SAVE EXPORT / IMPORT ================= */
+$('#expSave').onclick=()=>{
+  try{
+    const blob=new Blob([JSON.stringify(profile,null,1)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='training_battle_save.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    $('#tmsg').textContent='Сохранение экспортировано.';
+  }catch(e){$('#tmsg').textContent='Не удалось экспортировать.'}
+};
+$('#impSave').onclick=()=>$('#impFile').click();
+$('#impFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(typeof d!=='object'||d===null||typeof d.xp!=='number')throw 0;
+      profile=Object.assign({xp:0,games:0,wins:0,pool:[],stats:{},mistakes:[],bestCombo:0},d);profile.wstats=profile.wstats||{};profile.stats=profile.stats||{};profile.mistakes=(profile.mistakes||[]).filter(x=>x&&WORDS[x.topic]);
+      store.set(profile);renderMenu();$('#tmsg').textContent='Сохранение загружено.';
+    }catch(err){$('#tmsg').textContent='Файл не похож на сохранение игры.'}
+    e.target.value='';
+  };
+  r.readAsText(f);
+};
+
+
+/* ================= СВОЙ СПИСОК СЛОВ ================= */
+function parseWords(txt){
+  txt=txt.replace(/^\uFEFF/,'').trim();
+  let pairs=[];
+  if(txt[0]==='['||txt[0]==='{'){
+    const d=JSON.parse(txt),arr=Array.isArray(d)?d:(d.words||[]);
+    pairs=arr.map(x=>Array.isArray(x)?[x[0],x[1]]:[x.de||x.german||x.deutsch,x.ru||x.russian||x.translation]);
+  }else{
+    txt.split(/\r?\n/).forEach(l=>{
+      l=l.trim();if(!l||l[0]==='#')return;
+      let sep=['\t',';','|'].find(s=>l.includes(s));
+      let p;
+      if(sep)p=l.split(sep);else if(l.includes(' - '))p=l.split(' - ');else if(l.includes(','))p=[l.slice(0,l.indexOf(',')),l.slice(l.indexOf(',')+1)];else return;
+      pairs.push([p[0],p.slice(1).join(sep||' ')]);
+    });
+  }
+  const seen=new Set(),out=[];
+  pairs.forEach(p=>{
+    if(!p||typeof p[0]!=='string'||typeof p[1]!=='string')return;
+    let de=p[0].replace(/^"|"$/g,'').trim(),ru=p[1].replace(/^"|"$/g,'').trim();
+    if(!de||!ru||de.length>60||ru.length>80||!/[A-Za-zÄÖÜäöüß]/.test(de))return;
+    const k=de.toLowerCase();if(seen.has(k))return;seen.add(k);out.push([de,ru]);
+  });
+  return out;
+}
+$('#impWords').onclick=()=>$('#wFile').click();
+$('#wFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const list=parseWords(r.result);
+      if(list.length<8)throw 0;
+      WSTORE.set(list);applyCustom(list);
+      if(!cfg.topics.includes('custom'))cfg.topics.push('custom');
+      renderMenu();$('#tmsg').textContent='Загружено слов: '+list.length+'. Они в теме «Мои слова».';
+    }catch(err){$('#tmsg').textContent='Не получилось прочитать файл. Нужны строки «слово;перевод» (минимум 8) или JSON [["der Hund","собака"],…].'}
+    e.target.value='';
+  };
+  r.readAsText(f,'utf-8');
+};
+$('#clrWords').onclick=()=>{
+  WSTORE.clear();applyCustom(null);
+  cfg.topics=cfg.topics.filter(k=>k!=='custom');
+  profile.mistakes=profile.mistakes.filter(x=>WORDS[x.topic]);profile.pool=profile.pool.filter(x=>WORDS[x.topic]);store.set(profile);
+  renderMenu();$('#tmsg').textContent='Мои слова удалены.';
+};
+
+
+/* ================= СЛОВАРЬ ================= */
+const wstate=k=>{
+  const s=profile.wstats[k.toLowerCase()];
+  if(!s||s.c+s.w===0)return{st:'new',txt:'не встречалось',a:null,n:0};
+  const n=s.c+s.w,a=s.c/n;
+  const st=(n>=3&&a>=.8)?'known':(a<.5?'weak':'learn');
+  return{st,txt:({known:'выучено',weak:'слабо',learn:'учится'})[st]+' · '+Math.round(a*100)+'% ('+s.c+'✓ '+s.w+'✗)',a,n};
+};
+let dShown=0;
+function dictRows(){
+  const q=$('#dQ').value.trim().toLowerCase(),cat=$('#dCat').value,st=$('#dSt').value;
+  const rows=[];
+  Object.keys(TOPICS).forEach(k=>{
+    if(cat!=='all'&&cat!==k)return;
+    WORDS[k].forEach(w=>{rows.push({w,k})});
+  });
+  return {all:rows,list:rows.filter(r=>{
+    if(q&&!(r.w[0].toLowerCase().includes(q)||r.w[1].toLowerCase().includes(q)))return false;
+    if(st!=='all'&&wstate(r.w[0]).st!==st)return false;
+    return true;
+  })};
+}
+function renderDict(reset){
+  if(reset)dShown=0;
+  const {all,list}=dictRows();
+  const cnt={new:0,weak:0,learn:0,known:0};
+  all.forEach(r=>cnt[wstate(r.w[0]).st]++);
+  $('#dSum').textContent='Слов: '+all.length+(list.length!==all.length?' · найдено: '+list.length:'');
+  const pct=all.length?Math.round(cnt.known/all.length*100):0;
+  $('#dStat').innerHTML=`<span class="bd known">выучено ${cnt.known} (${pct}%)</span><span class="bd learn">учатся ${cnt.learn}</span><span class="bd weak">слабые ${cnt.weak}</span><span class="bd new">не встречались ${cnt.new}</span>`;
+  const lim=Math.max(dShown,200);dShown=lim;
+  const part=list.slice(0,lim);
+  $('#dList').innerHTML=part.map(r=>{const s=wstate(r.w[0]);return `<div class="dr"><span class="de">${esc(r.w[0])}</span><span class="ru">${esc(r.w[1])}</span><span class="bd ${s.st}">${esc(s.txt)}</span></div>`}).join('')
+    +(list.length>lim?`<button class="opt dmore" id="dMore">Показать ещё (${list.length-lim})</button>`:'')
+    +(list.length?'':'<div style="padding:20px;text-align:center;opacity:.6">Ничего не найдено</div>');
+  const mb=$('#dMore');if(mb)mb.onclick=()=>{dShown+=300;renderDict(false)};
+}
+function openDict(){
+  $('#dCat').innerHTML='<option value="all">Все категории</option>'+Object.keys(TOPICS).map(k=>`<option value="${k}">${esc(TOPICS[k])} (${WORDS[k].length})</option>`).join('');
+  $('#dQ').value='';$('#dSt').value='all';
+  renderDict(true);show('dict');
+}
+$('#openDict').onclick=openDict;
+$('#dBack').onclick=()=>{renderMenu();show('menu')};
+let dTimer=null;
+$('#dQ').addEventListener('input',()=>{clearTimeout(dTimer);dTimer=setTimeout(()=>{renderDict(true);$('#dList').scrollTop=0},150)});
+$('#dCat').onchange=$('#dSt').onchange=()=>{renderDict(true);$('#dList').scrollTop=0};
+
+/* ================= KEYS ================= */
+addEventListener('keydown',e=>{
+  if(!$('#battle').classList.contains('active')||!S||S.over)return;
+  if($('#qov').classList.contains('on')){
+    const n=+e.key;if(n>=1&&n<=4){const b=$$('#ans .a')[n-1];b&&!b.disabled&&!S.p[1-S.turn].bot&&b.click()}
+    if((e.key==='s'||e.key==='S'||e.key==='ы'||e.key==='Ы')&&$('#shbtn').classList.contains('show')&&!$('#shbtn').disabled)$('#shbtn').click();
+    if((e.key==='Enter'||e.code==='Space')&&S.skip){e.preventDefault();S.skip()}
+    return;
+  }
+  if(e.key>='1'&&e.key<='4')chooseCard(+e.key-1);
+  if(e.code==='Space'){e.preventDefault();useMega()}
+});
+
+renderMenu();
+$('#botRow').style.display='';
+})();
+</script>
+
+<script>
+// PWA: кешируем приложение для повторного запуска без интернета.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('PWA offline setup failed:', err));
+  });
+}
+</script>
+</body>
+</html>
